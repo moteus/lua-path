@@ -139,8 +139,7 @@ function PATH:extension(P)
 end
 
 function PATH:root(P)
-  local s1,s2 = self:splitroot(P)
-  return s2
+  return (self:splitroot(P))
 end
 
 function PATH:isfullpath(P)
@@ -221,6 +220,15 @@ function PATH:user_home()
   return os.getenv('HOME')
 end
 
+function PATH:size(P)
+  local f, err = io.open(P, 'rb')
+  if not f then return nil, err end
+  local size, err = f:seek('end')
+  f:close()
+  if not size then return nil, err end
+  return size
+end
+
 local lfs  = prequire "lfs"
 if lfs then
 
@@ -236,7 +244,7 @@ function PATH:fullpath(P)
       local root = self:root(lfs.currentdir())
       P = self:join(root, P)
     else
-      P = self:join(lfs.currentdir())
+      P = self:join(lfs.currentdir(), P)
     end
   end
 
@@ -274,15 +282,15 @@ function PATH:islink(P)
   return self:attrib(P,'mode') == 'link' and P
 end
 
-function PATH:getctime(P)
+function PATH:ctime(P)
   return self:attrib(P,'change')
 end
 
-function PATH:getmtime(P)
+function PATH:mtime(P)
   return self:attrib(P,'modification')
 end
 
-function PATH:getatime(P)
+function PATH:atime(P)
   return self:attrib(P,'access')
 end
 
@@ -298,9 +306,9 @@ if date then
     end
   end
 
-  PATH.getcdate = make_getfiletime_as_date( PATH.getctime );
-  PATH.getmdate = make_getfiletime_as_date( PATH.getmtime );
-  PATH.getadate = make_getfiletime_as_date( PATH.getatime );
+  PATH.cdate = make_getfiletime_as_date( PATH.ctime );
+  PATH.mdate = make_getfiletime_as_date( PATH.mtime );
+  PATH.adate = make_getfiletime_as_date( PATH.atime );
 end
 
 function PATH:mkdir(P)
@@ -371,6 +379,8 @@ function PATH:matchfiles(mask, recursive, cb)
 end
 
 end
+
+print(PATH:fullpath("../lua/path.lua"))
 
 local function make_module()
   local M = {}

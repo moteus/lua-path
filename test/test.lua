@@ -40,10 +40,10 @@ end
 
 function test_penlight_3()
   if not path.isdir then assert_false('lfs module not found') end
-  assert_equal ( "../lua", path.isdir( "../lua" ))
+  assert (  path.isdir( "../lua" ))
   assert_false ( path.isfile( "../lua" ))
 
-  assert_equal ( "../lua/path.lua", path.isfile( "../lua/path.lua" ))
+  assert ( path.isfile( "../lua/path.lua" ) )
   assert_false( path.isdir( "../lua/path.lua" ))
 end
 
@@ -56,6 +56,15 @@ function test_system()
     assert_pass (function()path_unx:isdir("/any/") end)
     assert_error(function()path_win:isdir("c:\\")  end)
   end
+end
+
+function test_split()
+  assert_equal('a', path_unx:root('/a/b/c'))
+  assert_equal('', path_unx:root('a/b/c'))
+
+  assert_equal('host', path_win:root('\\\\host\\a\\b\\c'))
+  assert_equal('a:',   path_win:root('a:\\b\\c'))
+  assert_equal('',     path_win:root('\\b\\c'))
 end
 
 function test_norm()
