@@ -160,7 +160,7 @@ local function assert_system(self)
   assert(not self.IS_WINDOWS)
 end
 
-local GetFileAttributes, GetLastError
+local GetFileAttributes, GetLastError, GetFileAttributesEx, GetFileSize
 if IS_WINDOWS then
 
   if not GetFileAttributes then -- alien
@@ -168,9 +168,37 @@ if IS_WINDOWS then
     if alien then
       local kernel32 = assert(alien.load("kernel32.dll"))
       GetFileAttributes = assert(kernel32.GetFileAttributesA) -- win2k+
-      GetFileAttributes:types{abi="stdcall", ret = "int", "string"}
+      GetFileAttributes:types{abi="stdcall", ret = "uint", "string"}
       GetLastError = kernel32.GetLastError
       GetLastError:types{ret ='int', abi='stdcall'}
+
+      local GetFileAttributesExA_ = kernel32.GetFileAttributesExA -- winXP+
+      if GetFileAttributesExA_ then
+        local WIN32_FILE_ATTRIBUTE_DATA = alien.defstruct{
+          {"dwFileAttributes",      "uint" };
+          {"ftCreationTime_low",    "uint" };
+          {"ftCreationTime_high",   "uint" };
+          {"ftLastAccessTime_low",  "uint" };
+          {"ftLastAccessTime_high", "uint" };
+          {"ftLastWriteTime_low",   "uint" };
+          {"ftLastWriteTime_high",  "uint" };
+          {"nFileSizeHigh",         "uint" };
+          {"nFileSizeLow",          "uint" };
+        }
+        GetFileAttributesExA_:types{abi="stdcall", ret = "int", "string", "int", "pointer"}
+        GetFileAttributesEx = function (P)
+          local fileInfo = WIN32_FILE_ATTRIBUTE_DATA:new()
+          local ret = GetFileAttributesExA_(P, 0, fileInfo())
+          if ret == 0 then return nil, GetLastError() end
+          return {
+            dwFileAttributes = fileInfo.dwFileAttributes;
+            ftCreationTime   = {fileInfo.ftCreationTime_low,   fileInfo.ftCreationTime_high};
+            ftLastAccessTime = {fileInfo.ftLastAccessTime_low, fileInfo.ftLastAccessTime_high};
+            ftLastWriteTime  = {fileInfo.ftLastWriteTime_low,  fileInfo.ftLastWriteTime_high};
+            nFileSize        = {fileInfo.nFileSizeLow,         fileInfo.nFileSizeHigh};
+          }
+        end
+      end
     end
   end
 
@@ -178,11 +206,53 @@ if IS_WINDOWS then
     local ffi = prequire "ffi"
     if ffi then
       ffi.cdef [[
+          typedef enum _GET_FILEEX_INFO_LEVELS { 
+            GetFileExInfoStandard,
+            GetFileExMaxInfoLevel 
+          } GET_FILEEX_INFO_LEVELS;
+
+          typedef struct _FILETIME {
+            uint32_t dwLowDateTime;
+            uint32_t dwHighDateTime;
+          } FILETIME, *PFILETIME;
+
+          typedef struct _WIN32_FILE_ATTRIBUTE_DATA {
+            uint32_t dwFileAttributes;
+            FILETIME ftCreationTime;
+            FILETIME ftLastAccessTime;
+            FILETIME ftLastWriteTime;
+            uint32_t nFileSizeHigh;
+            uint32_t nFileSizeLow;
+          } WIN32_FILE_ATTRIBUTE_DATA, *LPWIN32_FILE_ATTRIBUTE_DATA;
+
           int GetFileAttributesA(const char *path);
           int GetLastError();
+          int GetFileAttributesExA(const char *lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
        ]]
-      GetFileAttributes = ffi.C.GetFileAttributesA
-      GetLastError      = ffi.C.GetLastError
+      GetFileAttributes     = ffi.C.GetFileAttributesA
+      GetLastError          = ffi.C.GetLastError
+      GetFileAttributesExA_ = ffi.C.GetFileAttributesExA
+      local WIN32_FILE_ATTRIBUTE_DATA = ffi.typeof('WIN32_FILE_ATTRIBUTE_DATA')
+      GetFileAttributesEx = function (P)
+        local fileInfo = WIN32_FILE_ATTRIBUTE_DATA()
+        local ret = GetFileAttributesExA_(P, ffi.C.GetFileExInfoStandard, fileInfo)
+        if ret == 0 then return nil, GetLastError() end
+        return {
+          dwFileAttributes = fileInfo.dwFileAttributes;
+          ftCreationTime   = {fileInfo.ftCreationTime.dwLowDateTime,   fileInfo.ftCreationTime.dwHighDateTime};
+          ftLastAccessTime = {fileInfo.ftLastAccessTime.dwLowDateTime, fileInfo.ftLastAccessTime.dwHighDateTime};
+          ftLastWriteTime  = {fileInfo.ftLastWriteTime.dwLowDateTime,  fileInfo.ftLastWriteTime.dwHighDateTime};
+          nFileSize        = {fileInfo.nFileSizeLow,                   fileInfo.nFileSizeHigh};
+        }
+      end
+    end
+  end
+
+  if GetFileAttributesEx then
+    GetFileSize = function (P)
+      local info, err = GetFileAttributesEx(P)
+      if not info then return nil, err end
+      return (info.nFileSize[2] * 2^32) + info.nFileSize[1]
     end
   end
 
@@ -191,6 +261,7 @@ if IS_WINDOWS then
     if afx then 
       GetFileAttributes = afx.getfileattr
       GetLastError      = afx.lastapierror
+      GetFileSize       = afx.filesize
     end
   end
 
@@ -220,13 +291,25 @@ function PATH:user_home()
   return os.getenv('HOME')
 end
 
-function PATH:size(P)
+local function file_size(P)
   local f, err = io.open(P, 'rb')
   if not f then return nil, err end
   local size, err = f:seek('end')
   f:close()
   if not size then return nil, err end
   return size
+end
+
+if GetFileSize then
+  function PATH:size(P)
+    local size, err = GetFileSize(P)
+    if size then return size end
+    return file_size(P)
+  end
+else 
+  function PATH:size(P)
+    return file_size(P)
+  end
 end
 
 local lfs  = prequire "lfs"
@@ -379,8 +462,6 @@ function PATH:matchfiles(mask, recursive, cb)
 end
 
 end
-
-print(PATH:fullpath("../lua/path.lua"))
 
 local function make_module()
   local M = {}
