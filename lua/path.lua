@@ -221,10 +221,13 @@ if IS_WINDOWS then
     local ffi = prequire "ffi"
     if ffi then
       ffi.cdef [[
-          typedef enum _GET_FILEEX_INFO_LEVELS { 
+          #pragma pack(push)
+          #pragma pack(1)
+
+          typedef enum _GET_FILEEX_INFO_LEVELS {
             GetFileExInfoStandard,
             GetFileExMaxInfoLevel 
-          } GET_FILEEX_INFO_LEVELS;
+          } GET_FILEEX_INFO_LEVELS, *PGET_FILEEX_INFO_LEVELS;
 
           typedef struct _FILETIME {
             uint32_t dwLowDateTime;
@@ -238,12 +241,15 @@ if IS_WINDOWS then
             FILETIME ftLastWriteTime;
             uint32_t nFileSizeHigh;
             uint32_t nFileSizeLow;
-          } WIN32_FILE_ATTRIBUTE_DATA, *LPWIN32_FILE_ATTRIBUTE_DATA;
+          } WIN32_FILE_ATTRIBUTE_DATA, *PWIN32_FILE_ATTRIBUTE_DATA;
 
-          int GetFileAttributesA(const char *path);
-          int GetLastError();
-          int GetFileAttributesExA(const char *lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
-          uint32_t GetTempPathA(uint32_t n, char *buf);
+          #pragma pack(pop)
+
+
+          uint32_t __stdcall GetFileAttributesA(const char *path);
+          uint32_t __stdcall GetLastError();
+          uint32_t __stdcall GetFileAttributesExA(const char *lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
+          uint32_t __stdcall GetTempPathA(uint32_t n, char *buf);
        ]]
       local C = ffi.C
       GetFileAttributes     = ffi.C.GetFileAttributesA
@@ -251,7 +257,7 @@ if IS_WINDOWS then
       local WIN32_FILE_ATTRIBUTE_DATA = ffi.typeof('WIN32_FILE_ATTRIBUTE_DATA')
       GetFileAttributesEx = function (P)
         local fileInfo = WIN32_FILE_ATTRIBUTE_DATA()
-        local ret = C.GetFileAttributesExA_(P, ffi.C.GetFileExInfoStandard, fileInfo)
+        local ret = C.GetFileAttributesExA(P, ffi.C.GetFileExInfoStandard, fileInfo)
         if ret == 0 then return nil, C.GetLastError() end
         return {
           dwFileAttributes = fileInfo.dwFileAttributes;
