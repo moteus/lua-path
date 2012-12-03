@@ -12,7 +12,7 @@ function test_penlight_1()
   local function testpath(pth,p1,p2,p3)
     local dir,rest = path.splitpath(pth)
     local name,ext = path.splitext(rest)
-    assert_equal(path.remove_dir_end(dir),path.remove_dir_end(p1))
+    assert_equal(dir,p1)
     assert_equal(name,p2)
     assert_equal(ext,p3)
   end

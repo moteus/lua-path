@@ -1,9 +1,11 @@
 if LUA_VER == '5.2' then
   LUA_NEED = 'lua52'
   LUA_DIR  = ENV.LUA_DIR_5_2 or ENV.LUA_DIR
+  LUA_RUNNER = 'lua52'
 else
   LUA_NEED = 'lua'
   LUA_DIR  = ENV.LUA_DIR
+  LUA_RUNNER = 'lua'
 end
 
 PROJECT = 'path'
@@ -15,11 +17,18 @@ install = target('install', {
   file.group{odir=J(INSTALL_DIR, 'test'    );recurse = true;  src = J('test', '*.*'   )};
 })
 
-target('test', install, function()
-  if not TESTING then lake.chdir(J(INSTALL_DIR,'test')) end
-  print("run " .. J(INSTALL_DIR,'test','test.lua'))
-  if not TESTING then 
-    os.execute( LUA_EXE .. ' ' .. J(INSTALL_DIR,'test','test.lua') )
-    lake.chdir('<')
+local function run(file, cwd)
+  print()
+  print("run " .. file)
+  if not TESTING then
+    if cwd then lake.chdir(cwd) end
+    os.execute( LUA_RUNNER .. ' ' .. file )
+    if cwd then lake.chdir("<") end
+    print()
   end
+end
+
+target('test', install, function()
+  local test_dir = J(INSTALL_DIR,'test')
+  run(J(test_dir,'test.lua'), test_dir)
 end)
