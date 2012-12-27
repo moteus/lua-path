@@ -1,7 +1,11 @@
 ---
 -- Implementation of afx.findfile
 
-local PATH = require "path"
+local pacakge   = require "package"
+local string    = require "string"
+local table     = require "table"
+local coroutine = require "coroutine"
+local PATH      = require "path"
 
 local function fs_foreach(path, match, cb, recursive)
   for name in lfs.dir(path) do if name ~= "." and name ~= ".." then

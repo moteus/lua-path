@@ -1,3 +1,7 @@
+local pacakge = require "package"
+local string  = require "string"
+local table   = require "table"
+
 local DIR_SEP = package.config:sub(1,1)
 local IS_WINDOWS = DIR_SEP == '\\'
 
