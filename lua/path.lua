@@ -213,7 +213,7 @@ if IS_WINDOWS then
         GetTempPathA_:types{abi="stdcall", ret = "uint", "uint", "string"}
         GetTempPath = function()
           local buf = alien.buffer(MAX_PATH + 1);
-          local ret = GetTempPathA_(buf.size, buf)
+          local ret = GetTempPathA_(#buf, buf)
           if ret == 0 then return nil, GetLastError() end
           return tostring(buf)
         end
