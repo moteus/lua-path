@@ -1,7 +1,6 @@
 ---
 -- Implementation of afx.findfile
 
-local pacakge   = require "package"
 local string    = require "string"
 local table     = require "table"
 local coroutine = require "coroutine"

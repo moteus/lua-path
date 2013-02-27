@@ -511,53 +511,6 @@ function PATH:touch(P, ...)
   return lfs.touch(P, ...)
 end
 
-function PATH:matchfiles(mask, recursive, cb)
-  assert_system(self)
-  local self_ = self
-  
-  local function filePat2rexPat(pat)
-    local pat = pat:gsub("%.","%%%."):gsub("%*",".*"):gsub("%?", ".")
-    if IS_WINDOWS then pat = pat:upper() end
-    return pat
-  end
-
-  local basepath,mask = self:splitpath(mask)
-  mask = filePat2rexPat(mask)
-
-  local function match(s, pat)
-    if IS_WINDOWS then s = string.upper(s) end
-    return nil ~= string.find(s, pat)
-  end
-
-  local function filelist (path, pat, cb)
-    for file in lfs.dir(path) do if file ~= "." and file ~= ".." then
-      local cur_file = self_:join(path, file)
-      if self_:isfile(cur_file) then
-        if match(file, pat) then 
-          cb(path, file)
-        end
-      end
-    end end
-    return true
-  end
-
-  local function filelist_recurcive (path, pat, cb)
-    filelist(path, pat, cb)
-    for file in lfs.dir(path) do if file ~= "." and file ~= ".." then
-      local cur_dir = self_:join(path, file)
-      if self_:isdir(cur_dir) then
-        files = filelist_recurcive(cur_dir, pat, cb)
-      end
-    end end
-    return true
-  end
-
-  if recursive then
-    return filelist_recurcive(basepath, mask, cb)
-  end
-  return filelist(basepath, mask, cb)
-end
-
 function PATH:currentdir()
   return self:normolize(lfs.currentdir())
 end
@@ -566,6 +519,13 @@ if not PATH.size then
   function PATH:size()
     return self:attrib('size')
   end
+end
+
+local findfile = require "path.findfile"
+
+function PATH:each(...)
+  assert_system(self)
+  return findfile(...)
 end
 
 else

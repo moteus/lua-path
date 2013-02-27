@@ -196,7 +196,7 @@ function test_findfile()
   local params
 
   params = clone(files)
-  findfile("./1/2/3/*.*", function(f)
+  path.each("./1/2/3/*.*", function(f)
     f = up(f)
     assert_not_nil(params[f], "unexpected: " .. f)
     params[f] = nil
@@ -205,7 +205,7 @@ function test_findfile()
 
   params = clone(files)
   params = clone(dirs,params)
-  findfile("./1/*", function(f)
+  path.each("./1/*", function(f)
     f = up(f)
     assert_not_nil(params[f], "unexpected: " .. f)
     params[f] = nil
@@ -214,7 +214,7 @@ function test_findfile()
   assert_nil(next(params, up(path.join(cwd, '1' ))))
 
   params = clone(files)
-  findfile("./1/2/3/*.*", "fz", function(f, sz)
+  path.each("./1/2/3/*.*", "fz", function(f, sz)
     f = up(f)
     assert_not_nil(params[f], "unexpected: " .. f)
     assert_equal(5, sz)
@@ -223,7 +223,7 @@ function test_findfile()
   assert_nil(next(params))
 
   params = clone(dirs)
-  findfile("./*", "fz", function(f, sz)
+  path.each("./*", "fz", function(f, sz)
     f = up(f)
     assert_not_nil(params[f], "unexpected: " .. f)
     assert_equal(0, sz)
