@@ -26,7 +26,7 @@ local function clone(t, o)
   return o
 end
 
-local TEST_NAME = 'PATH manipulation' local _ENV = _G
+local _ENV = _G local TEST_NAME = 'PATH manipulation'
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -100,7 +100,7 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
-local TEST_NAME = 'PATH system error' local _ENV = _G
+local _ENV = _G local TEST_NAME = 'PATH system error'
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -110,7 +110,7 @@ function test()
   assert_error(function() path.size('./1.txt') end)
 end
 
-local TEST_NAME = 'PATH make dir' local _ENV = _G
+local _ENV = _G local TEST_NAME = 'PATH make dir'
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -145,8 +145,7 @@ function test_clean()
   assert_false( path.exists(path.join(cwd, '1', '2', '3')) )
 end
 
-
-local TEST_NAME = 'PATH findfile' local _ENV = _G
+local _ENV = _G local TEST_NAME = 'PATH findfile'
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -204,6 +203,14 @@ function test_findfile()
   assert_nil(next(params))
 
   params = clone(files)
+  for f in path.each("./1/2/3/*.*") do
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    params[f] = nil
+  end
+  assert_nil(next(params))
+
+  params = clone(files)
   params = clone(dirs,params)
   path.each("./1/*", function(f)
     f = up(f)
@@ -220,6 +227,15 @@ function test_findfile()
     assert_equal(5, sz)
     params[f] = nil
   end)
+  assert_nil(next(params))
+
+  params = clone(files)
+  for f, sz in path.each("./1/2/3/*.*", "fz") do
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    assert_equal(5, sz)
+    params[f] = nil
+  end
   assert_nil(next(params))
 
   params = clone(dirs)
