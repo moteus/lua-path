@@ -580,7 +580,7 @@ end
 end
 
 local function make_module()
-  local M = {}
+  local M = require "path.module"
   for k, f in pairs(PATH) do
     if type(f) == 'function' then
       M[k] = function(...) return f(PATH, ...) end

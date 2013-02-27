@@ -5,7 +5,7 @@ local pacakge   = require "package"
 local string    = require "string"
 local table     = require "table"
 local coroutine = require "coroutine"
-local PATH      = require "path"
+local PATH      = require "path.module"
 local lfs       = require "lfs"
 
 local function fs_foreach(path, match, cb, recursive)
@@ -24,7 +24,7 @@ local function fs_foreach(path, match, cb, recursive)
 end
 
 local function filePat2rexPat(pat)
-  local pat = pat:gsub("%.","%%%."):gsub("%*",".*"):gsub("%?", ".")
+  local pat = pat:gsub("%.","%%."):gsub("%*",".*"):gsub("%?", ".")
   if PATH.IS_WINDOWS then pat = pat:upper() end
   return pat
 end

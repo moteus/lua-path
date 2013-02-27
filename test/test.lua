@@ -1,10 +1,32 @@
-local lunit = require "lunitx"
+local lunit = require "lunit"
 local path  = require "path"
+local findfile = require "path.findfile"
 
 local path_win = path.new('\\')
 local path_unx = path.new('/')
 
-local TEST_NAME = 'PATH manipulation'
+local function mkfile(P, data)
+  P = path.fullpath(P)
+  local f, e = io.open(P, "w+b")
+  if not f then return nil, err end
+  if data then assert(f:write(data)) end
+  f:close()
+  return P
+end
+
+local function up(str)
+  return path.IS_WINDOWS and str:upper() or str
+end
+
+local function clone(t, o)
+  o = o or {}
+  for k,v in pairs(t) do
+    o[ k ] = v
+  end
+  return o
+end
+
+local TEST_NAME = 'PATH manipulation' local _ENV = _G
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -78,7 +100,7 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
-local TEST_NAME = 'PATH make dir'
+local TEST_NAME = 'PATH make dir' local _ENV = _G
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
@@ -102,14 +124,6 @@ function test_mkdir()
   assert(path.rmdir(path.join(cwd, '1', '2', '3')))
 end
 
-local function mkfile(P)
-  P = path.fullpath(P)
-  local f, e = io.open(P, "w+b")
-  if not f then return nil, err end
-  f:close()
-  return P
-end
-
 function test_clean()
   assert(path.isdir(cwd))
   assert(path.mkdir(path.join(cwd, '1', '2', '3')))
@@ -120,3 +134,93 @@ function test_clean()
   assert(path.remove(path.join(cwd, '1', '2', '3')))
   assert_false( path.exists(path.join(cwd, '1', '2', '3')) )
 end
+
+
+local TEST_NAME = 'PATH findfile' local _ENV = _G
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd, files, dirs
+
+function teardown()
+  path.remove(path.join(cwd, '1', '2', '3', 'test.dat'))
+  path.remove(path.join(cwd, '1', '2', '3', 'test.txt'))
+  path.remove(path.join(cwd, '1', '2', '3', 'file.dat'))
+  path.rmdir(path.join(cwd, '1', '2', '3'))
+  path.rmdir(path.join(cwd, '1', '2'))
+  path.rmdir(path.join(cwd, '1'))
+end
+
+function setup()
+  cwd = assert_string(path.currentdir())
+  teardown()
+  path.mkdir(path.join(cwd, '1', '2', '3'))
+  mkfile(path.join(cwd, '1', '2', '3', 'test.dat'), '12345')
+  mkfile(path.join(cwd, '1', '2', '3', 'test.txt'), '12345')
+  mkfile(path.join(cwd, '1', '2', '3', 'file.dat'), '12345')
+
+  files = {
+    [ up(path.join(cwd, '1', '2', '3', 'test.dat')) ] = true;
+    [ up(path.join(cwd, '1', '2', '3', 'test.txt')) ] = true;
+    [ up(path.join(cwd, '1', '2', '3', 'file.dat')) ] = true;
+  }
+
+  dirs = {
+    [ up(path.join(cwd, '1', '2', '3')) ] = true;
+    [ up(path.join(cwd, '1', '2')) ] = true;
+    [ up(path.join(cwd, '1' )) ] = true;
+  }
+end
+
+function test_cwd()
+  assert_equal(cwd, path.fullpath("."))
+end
+
+function test_attr()
+  for P in pairs(files)do assert(path.exists(P)) end
+  for P in pairs(files)do assert(path.isfile(P)) end
+  for P in pairs(files)do assert_equal(5, path.size(P)) end
+end
+
+function test_findfile()
+  local params
+
+  params = clone(files)
+  findfile("./1/2/3/*.*", function(f)
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    params[f] = nil
+  end)
+  assert_nil(next(params))
+
+  params = clone(files)
+  params = clone(dirs,params)
+  findfile("./1/*", function(f)
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    params[f] = nil
+  end, {recurse=true})
+  assert_equal(up(path.join(cwd, '1' )), next(params))
+  assert_nil(next(params, up(path.join(cwd, '1' ))))
+
+  params = clone(files)
+  findfile("./1/2/3/*.*", "fz", function(f, sz)
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    assert_equal(5, sz)
+    params[f] = nil
+  end)
+  assert_nil(next(params))
+
+  params = clone(dirs)
+  findfile("./*", "fz", function(f, sz)
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    assert_equal(0, sz)
+    params[f] = nil
+  end, {skipfiles=true, recurse=true})
+  assert_nil(next(params))
+
+end
+
+lunit.run()
