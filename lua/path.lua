@@ -473,6 +473,7 @@ if date then
 end
 
 function PATH:mkdir(P)
+  assert_system(self)
   local P = self:fullpath(P)
   if self:exists(P) then return self:isdir(P) and P end
   local p = ''
@@ -493,16 +494,19 @@ function PATH:mkdir(P)
 end
 
 function PATH:rmdir(P)
+  assert_system(self)
   P = self:fullpath(P)
   return lfs.rmdir(P)
 end
 
 function PATH:remove(P)
+  assert_system(self)
   if self:isdir(P) then return self:rmdir(P) end
   return os.remove((self:fullpath(P)))
 end
 
 function PATH:touch(P, ...)
+  assert_system(self)
   P = self:fullpath(P)
   return lfs.touch(P, ...)
 end

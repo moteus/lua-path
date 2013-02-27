@@ -100,6 +100,16 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
+local TEST_NAME = 'PATH system error' local _ENV = _G
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+function test()
+  local path = path.IS_WINDOWS and path_unx or path_win
+  assert_error(function() path.mkdir('./1') end)
+  assert_error(function() path.size('./1.txt') end)
+end
+
 local TEST_NAME = 'PATH make dir' local _ENV = _G
 if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
 else module( TEST_NAME, package.seeall, lunit.testcase ) end
