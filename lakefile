@@ -1,20 +1,19 @@
+PROJECT = 'path'
+
 if LUA_VER == '5.2' then
-  LUA_NEED = 'lua52'
   LUA_DIR  = ENV.LUA_DIR_5_2 or ENV.LUA_DIR
   LUA_RUNNER = 'lua52'
 else
-  LUA_NEED = 'lua'
   LUA_DIR  = ENV.LUA_DIR
   LUA_RUNNER = 'lua'
 end
 
-PROJECT = 'path'
-
-INSTALL_DIR = INSTALL_DIR or J(LUA_DIR,'libs',PROJECT)
+ROOT   = ROOT or J(LUA_DIR,'libs',PROJECT)
+LUADIR = LUADIR or J(ROOT, 'lua')
 
 install = target('install', {
-  file.group{odir=J(INSTALL_DIR, 'lua'     );recurse = true;  src = J('lua', '*.*'     )};
-  file.group{odir=J(INSTALL_DIR, 'test'    );recurse = true;  src = J('test', '*.*'   )};
+  file.group{odir= LUADIR;         recurse = true;  src = J('lua',  '*.*' )};
+  file.group{odir=J(ROOT, 'test'); recurse = true;  src = J('test', '*.*' )};
 })
 
 local function run(file, cwd)
@@ -29,6 +28,6 @@ local function run(file, cwd)
 end
 
 target('test', install, function()
-  local test_dir = J(INSTALL_DIR,'test')
+  local test_dir = J(ROOT,'test')
   run(J(test_dir,'test.lua'), test_dir)
 end)

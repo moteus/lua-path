@@ -6,6 +6,7 @@ local string    = require "string"
 local table     = require "table"
 local coroutine = require "coroutine"
 local PATH      = require "path"
+local lfs       = require "lfs"
 
 local function fs_foreach(path, match, cb, recursive)
   for name in lfs.dir(path) do if name ~= "." and name ~= ".." then

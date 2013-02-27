@@ -77,3 +77,46 @@ function test_norm()
   assert_equal("/hello",          path_unx:normolize("\\c\\..\\hello"))
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
+
+local TEST_NAME = 'PATH make dir'
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd
+
+function teardown()
+  path.remove(path.join(cwd, '1', '2', '3', 'test.dat'))
+  path.rmdir(path.join(cwd, '1', '2', '3'))
+  path.rmdir(path.join(cwd, '1', '2'))
+  path.rmdir(path.join(cwd, '1'))
+end
+
+function setup()
+  cwd = assert_string(path.currentdir())
+  teardown()
+end
+
+function test_mkdir()
+  assert(path.isdir(cwd))
+  assert(path.mkdir(path.join(cwd, '1', '2', '3')))
+  assert(path.rmdir(path.join(cwd, '1', '2', '3')))
+end
+
+local function mkfile(P)
+  P = path.fullpath(P)
+  local f, e = io.open(P, "w+b")
+  if not f then return nil, err end
+  f:close()
+  return P
+end
+
+function test_clean()
+  assert(path.isdir(cwd))
+  assert(path.mkdir(path.join(cwd, '1', '2', '3')))
+  assert_nil(path.rmdir(path.join(cwd, '1')))
+  assert(mkfile(path.join(cwd, '1', '2', '3', 'test.dat')))
+  assert_nil(path.rmdir(path.join(cwd, '1', '2', '3')))
+  assert(path.remove(path.join(cwd, '1', '2', '3', 'test.dat')))
+  assert(path.remove(path.join(cwd, '1', '2', '3')))
+  assert_false( path.exists(path.join(cwd, '1', '2', '3')) )
+end

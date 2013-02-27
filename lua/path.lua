@@ -1,6 +1,7 @@
 local pacakge = require "package"
 local string  = require "string"
 local table   = require "table"
+local os      = require "os"
 
 local DIR_SEP = package.config:sub(1,1)
 local IS_WINDOWS = DIR_SEP == '\\'
@@ -328,7 +329,6 @@ LPTSTR tempPath = new TCHAR[32767];
 ----------------
 --]]
 
-
 if GetFileAttributes then
   function PATH:fileattrib(P, ...)
     assert_system(self)
@@ -382,23 +382,10 @@ function PATH:tmpname()
   return P
 end
 
-local function file_size(P)
-  local f, err = io.open(P, 'rb')
-  if not f then return nil, err end
-  local size, err = f:seek('end')
-  f:close()
-  if not size then return nil, err end
-  return size
-end
-
 if GetFileSize then
   function PATH:size(P)
     local size, err = GetFileSize(P)
     if size then return size end
-    return file_size(P)
-  end
-else 
-  function PATH:size(P)
     return file_size(P)
   end
 end
@@ -505,6 +492,21 @@ function PATH:mkdir(P)
   return P
 end
 
+function PATH:rmdir(P)
+  P = self:fullpath(P)
+  return lfs.rmdir(P)
+end
+
+function PATH:remove(P)
+  if self:isdir(P) then return self:rmdir(P) end
+  return os.remove((self:fullpath(P)))
+end
+
+function PATH:touch(P, ...)
+  P = self:fullpath(P)
+  return lfs.touch(P, ...)
+end
+
 function PATH:matchfiles(mask, recursive, cb)
   assert_system(self)
   local self_ = self
@@ -550,6 +552,29 @@ function PATH:matchfiles(mask, recursive, cb)
     return filelist_recurcive(basepath, mask, cb)
   end
   return filelist(basepath, mask, cb)
+end
+
+function PATH:currentdir()
+  return self:normolize(lfs.currentdir())
+end
+
+if not PATH.size then
+  function PATH:size()
+    return self:attrib('size')
+  end
+end
+
+else
+
+if not PATH.size then
+  function PATH:size(P)
+    local f, err = io.open(P, 'rb')
+    if not f then return nil, err end
+    local size, err = f:seek('end')
+    f:close()
+    if not size then return nil, err end
+    return size
+  end
 end
 
 end
