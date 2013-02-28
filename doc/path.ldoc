@@ -1,0 +1,217 @@
+
+--[[--- @usage
+local PATH = require "path"
+
+-- suppose we run on windows
+assert(PATH.IS_WINDOWS)
+
+-- we can use system dependet function
+print(PATH.user_home())  -- C:\Documents and Settings\Admin
+print(PATH.currentdir()) -- C:\lua\5.1
+
+-- but we can use specific system path notation
+local ftp_path = PATH.new('/')
+print(ftp_path:join("/root", "some", "dir")) -- /root/some/dir
+
+-- All functions specific to system will fail
+assert(not pcall( ftp_path:currentdir() ) )
+--]]
+
+
+local PATH = {}
+
+---
+--
+PATH.DIR_SEP    = DIR_SEP
+
+---
+--
+PATH.IS_WINDOWS = IS_WINDOWS
+
+--
+-- PATH manipulation 
+
+---
+-- @local
+function PATH:unquote(P)end
+
+---
+-- @local
+function PATH:quote(P)end
+
+---
+--
+function PATH:has_dir_end(P)end
+
+---
+--
+function PATH:remove_dir_end(P)end
+
+---
+--
+function PATH:ensure_dir_end(P)end
+
+---
+-- @local
+function PATH:normolize_sep(P) end
+
+---
+--
+function PATH:normolize(P) end
+
+---
+--
+function PATH:join(...)end
+
+---
+--
+function PATH:splitext(P) end
+
+---
+--
+function PATH:splitpath(P)end
+
+---
+--
+function PATH:splitroot(P)end
+
+---
+--
+function PATH:basename(P)end
+
+---
+--
+function PATH:dirname(P)end
+
+---
+--
+function PATH:extension(P)end
+
+---
+--
+function PATH:root(P)end
+
+---
+--
+function PATH:isfullpath(P)end
+
+
+--
+-- FS manipulation
+
+--- return user_home dir
+--
+function PATH:user_home()end
+
+---
+-- Windows only
+-- depends on Alien/FFI/afx
+function PATH:fileattrib(P)end
+
+--- Return path to temp directory.
+-- On Windows can use GetTempPath if Alien/FFI/afx have been found
+-- On Windows use TMP/TEMP environment variables
+function PATH:tmpdir() end
+
+--- Return full path for temp file.
+--
+function PATH:tmpname()end
+
+--- 
+-- On Windows can use GetFileAttributesEx if Alien/FFI/afx have been found
+function PATH:size(P)end
+
+
+---
+-- depends on lfs
+function PATH:fullpath(P)end
+
+---
+-- @local
+-- depends on lfs
+function PATH:attrib(P, ...)end
+
+---
+-- depends on lfs
+function PATH:exists(P)end
+
+---
+-- depends on lfs
+function PATH:isdir(P)end
+
+---
+-- depends on lfs
+function PATH:isfile(P)end
+
+---
+-- depends on lfs
+function PATH:islink(P)end
+
+---
+-- depends on lfs
+function PATH:ctime(P)end
+
+---
+-- depends on lfs
+function PATH:mtime(P)end
+
+---
+-- depends on lfs
+function PATH:atime(P)end
+
+---
+-- depends on lfs and LuaDate
+function PATH:cdate(P)end
+
+---
+-- depends on lfs and LuaDate
+function PATH:mdate(P)end
+
+---
+-- depends on lfs and LuaDate
+function PATH:adate(P)end
+
+--- Create new directory.
+-- depends on lfs
+function PATH:mkdir(P)end
+
+--- Remove empty directory.
+-- depends on lfs
+function PATH:rmdir(P)end
+
+--- Remove empty directory or file.
+-- depends on lfs
+function PATH:remove(P)end
+
+---
+-- depends on lfs
+function PATH:rename(from,to,force)end
+
+---
+-- depends on lfs
+function PATH:currentdir()end
+
+---
+-- depends on lfs
+function PATH:chdir(P)end
+
+---
+--
+function PATH:each(str_file, str_params, func_callback, tbl_option)end
+
+---
+-- depends on lfs
+function PATH:each(str_file, str_params, tbl_option)end
+
+---
+-- depends on lfs
+function PATH:each(str_file, func_callback, tbl_option)end
+
+---
+-- depends on lfs
+function PATH:each(str_file, tbl_option)end
+
+---
+-- depends on lfs
+function PATH:each(func_callback, tbl_option)end
+
