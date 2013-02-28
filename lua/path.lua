@@ -402,10 +402,10 @@ function PATH:fullpath(P)
     if ch1 == '~' then --  ~\temp
       P = self:join(self:user_home(), P:sub(2))
     elseif self.IS_WINDOWS and (ch1 == self.DIR_SEP) then -- \temp => c:\temp
-      local root = self:root(lfs.currentdir())
+      local root = self:root(self:currentdir())
       P = self:join(root, P)
     else
-      P = self:join(lfs.currentdir(), P)
+      P = self:join(self:currentdir(), P)
     end
   end
 
@@ -505,6 +505,15 @@ function PATH:remove(P)
   return os.remove((self:fullpath(P)))
 end
 
+function PATH:rename(from,to,force)
+  if not self:isfile(from) then return nil, "file not found" end
+  if self:exists(to) and force then
+    local ok, err = self:remove(to)
+    if not ok then return nil, err end
+  end
+  return os.rename(from, to)
+end
+
 function PATH:touch(P, ...)
   assert_system(self)
   P = self:fullpath(P)
@@ -513,6 +522,11 @@ end
 
 function PATH:currentdir()
   return self:normolize(lfs.currentdir())
+end
+
+function PATH:chdir(P)
+  P = self:fullpath(P)
+  return lfs.chdir(P)
 end
 
 if not PATH.size then

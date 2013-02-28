@@ -249,4 +249,110 @@ function test_findfile()
 
 end
 
+local _ENV = _G local TEST_NAME = 'PATH rename'
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd
+
+function teardown()
+  path.remove(path.join(cwd, '1', 'from.dat'))
+  path.remove(path.join(cwd, '1', 'to.dat'  ))
+  path.remove(path.join(cwd, '1', 'to.txt'))
+  path.remove(path.join(cwd, '1', 'to'))
+  path.remove(path.join(cwd, '1'))
+end
+
+function setup()
+  cwd = assert_string(path.currentdir())
+  teardown()
+  path.mkdir(path.join(cwd, '1'))
+  path.mkdir(path.join(cwd, '1', 'to'))
+  mkfile(path.join(cwd, '1', 'from.dat'))
+  mkfile(path.join(cwd, '1', 'to.dat'  ))
+
+  assert(path.isfile(path.join(cwd, '1', 'from.dat')))
+  assert(path.isfile(path.join(cwd, '1', 'to.dat'  )))
+  assert(path.isdir (path.join(cwd, '1', 'to'      )))
+end
+
+function test_rename_fail()
+  assert_nil( path.rename(
+    path.join(cwd, '1', 'from.dat'),
+    path.join(cwd, '1', 'to.dat')
+  ))
+  assert(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to.dat')))
+
+  assert_nil( path.rename(
+    path.join(cwd, '1', 'from.dat'),
+    path.join(cwd, '1', 'to')
+  ))
+  assert(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to')))
+
+  assert_nil( path.rename(
+    path.join(cwd, '1', 'from.txt'),
+    path.join(cwd, '1', 'to'),
+    true
+  ))
+  assert(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to')))
+end
+
+function test_rename_pass1()
+  assert( path.rename(
+    path.join(cwd, '1', 'from.dat'),
+    path.join(cwd, '1', 'to.txt')
+  ))
+  assert_false(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to.dat')))
+end
+
+function test_rename_force_file()
+  assert( path.rename(
+    path.join(cwd, '1', 'from.dat'),
+    path.join(cwd, '1', 'to.dat'),
+    true
+  ))
+  assert_false(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to.dat')))
+end
+
+function test_rename_force_dir()
+  assert( path.rename(
+    path.join(cwd, '1', 'from.dat'),
+    path.join(cwd, '1', 'to'),
+    true
+  ))
+  assert_false(path.exists(path.join(cwd, '1', 'from.dat')))
+  assert(path.exists(path.join(cwd, '1', 'to.dat')))
+end
+
+local _ENV = _G local TEST_NAME = 'PATH chdir'
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd
+
+function teardown()
+  if cwd then path.chdir(cwd) end
+  path.rmdir(path.join(cwd, '1', '2'))
+  path.rmdir(path.join(cwd, '1'))
+end
+
+function setup()
+  cwd = path.currentdir()
+  path.mkdir(path.join(cwd, '1'))
+  path.mkdir(path.join(cwd, '1', '2'))
+end
+
+function test_chdir()
+  assert(path.isdir('./1'))
+  assert_false(path.exists('./2'))
+  assert_true(path.chdir('./1'))
+  assert_false(path.exists('./1'))
+  assert(path.isdir('./2'))
+end
+
 lunit.run()
