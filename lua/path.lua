@@ -2,6 +2,11 @@ local pacakge = require "package"
 local string  = require "string"
 local table   = require "table"
 local os      = require "os"
+local io      = require "io"
+
+local USE_ALIEN = true
+local USE_FFI   = true
+local USE_AFX   = true
 
 local DIR_SEP = package.config:sub(1,1)
 local IS_WINDOWS = DIR_SEP == '\\'
@@ -165,12 +170,10 @@ local function assert_system(self)
   assert(not self.IS_WINDOWS)
 end
 
-local GetFileAttributes, GetLastError, GetFileAttributesEx, GetFileSize, GetTempPath
+local GetFileAttributes, GetLastError, GetFileAttributesEx, GetFileSize, GetTempPath, 
+  CopyFile
 if IS_WINDOWS then
   local MAX_PATH  = 260
-  local USE_ALIEN = true
-  local USE_FFI   = true
-  local USE_AFX   = true
 
   if USE_ALIEN and not GetFileAttributes then -- alien
     local alien = prequire "alien"
@@ -180,6 +183,13 @@ if IS_WINDOWS then
       GetFileAttributes:types{abi="stdcall", ret = "uint", "string"}
       GetLastError = kernel32.GetLastError
       GetLastError:types{ret ='int', abi='stdcall'}
+      local CopyFile_ = kernel32.CopyFileA
+      CopyFile_:types{abi='stdcall', ret ='int', "string", "string", "int"}
+      CopyFile = function(from, src, f)
+        local res = 1 == CopyFile_(from, src, f and 1 or 0)
+        if not res then return nil, GetLastError() end
+        return res
+      end
 
       local GetFileAttributesExA_ = kernel32.GetFileAttributesExA -- winXP+
       if GetFileAttributesExA_ then
@@ -255,10 +265,16 @@ if IS_WINDOWS then
           uint32_t __stdcall GetLastError();
           uint32_t __stdcall GetFileAttributesExA(const char *lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
           uint32_t __stdcall GetTempPathA(uint32_t n, char *buf);
+          uint32_t __stdcall CopyFileA(const char *src, const char *dst, uint32_t bool_flag);
        ]]
       local C = ffi.C
       GetFileAttributes     = ffi.C.GetFileAttributesA
       GetLastError          = ffi.C.GetLastError
+      CopyFile = function(from, src, f)
+        local res = 1 == C.CopyFileA(from, src, f and 1 or 0)
+        if not res then return nil, GetLastError() end
+        return res
+      end
       local WIN32_FILE_ATTRIBUTE_DATA = ffi.typeof('WIN32_FILE_ATTRIBUTE_DATA')
       GetFileAttributesEx = function (P)
         local fileInfo = WIN32_FILE_ATTRIBUTE_DATA()
@@ -380,6 +396,15 @@ function PATH:tmpname()
     P = self:join(self:tmpdir(), P)
   end
   return P
+end
+
+local function file_size(P)
+  local f, err = io.open(P, 'rb')
+  if not f then return nil, err end
+  local size, err = f:seek('end')
+  f:close()
+  if not size then return nil, err end
+  return size
 end
 
 if GetFileSize then
@@ -530,8 +555,8 @@ function PATH:chdir(P)
 end
 
 if not PATH.size then
-  function PATH:size()
-    return self:attrib('size')
+  function PATH:size(P)
+    return self:attrib(P, 'size')
   end
 end
 
@@ -546,15 +571,87 @@ else
 
 if not PATH.size then
   function PATH:size(P)
-    local f, err = io.open(P, 'rb')
-    if not f then return nil, err end
-    local size, err = f:seek('end')
-    f:close()
-    if not size then return nil, err end
-    return size
+    return file_size(P)
   end
 end
 
+function PATH:isfile(P)
+  local f, err = io.open(P, 'rb')
+  if f then f:close() end
+  return not not f
+end
+
+function PATH:exists(P)
+  return self:isfile(P)
+end
+
+end
+
+if not CopyFile then
+
+CopyFile = function(from, to, failIfExists)
+  local f, err = io.open(from, 'rb')
+  if not f then return nil, err end
+
+  if failIfExists then
+    local t, err = io.open(to,   'rb' )
+    if t then 
+      f:close()
+      t:close()
+      return nil, "file alredy exists"
+    end
+  end
+
+  local t, err = io.open(to, 'w+b')
+  if not t then
+    f:close()
+    return nil, err
+  end
+
+  local CHUNK_SIZE = 4096
+  while(true)do
+    local chunk = f:read(CHUNK_SIZE)
+    if not chunk then break end
+    local ok, err = t:write(chunk)
+    if not ok then
+      t:close()
+      f:close()
+      return nil, err or "can not write"
+    end
+  end
+  t:close()
+  f:close()
+  return true
+end
+
+end
+
+function PATH:copy_impl_batch(src_dir, src_name, dst_dir, opt)
+  local overwrite = opt and opt.overwrite
+  self:each(self:join(src_dir, src_name), function(path)
+    local rel = path:sub(#src_dir + 2)
+    local dst = self:join(dst_dir, rel)
+    self:mkdir(self:dirname(dst))
+    local ok, err = CopyFile(path, dst, not overwrite)
+    --- @todo check error
+  end, {recurse = opt and opt.recurse})
+  return true
+end
+
+function PATH:copy(from, to, opt)
+  from = self:fullpath(from)
+  to   = self:fullpath(to)
+
+  local overwrite = opt and opt.overwrite
+  local recurse   = opt and opt.recurse
+
+  local src_dir, src_name = self:splitpath(from)
+  if recurse or src_name:find("[*?]") then -- batch mode
+    if not self.each then return nil, "not supported" end
+    return self:copy_impl_batch(src_dir, src_name, to, opt)
+  end
+  if self.mkdir then self:mkdir(self:dirname(to)) end
+  return CopyFile(from, to, not overwrite)
 end
 
 local function make_module()

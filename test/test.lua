@@ -14,6 +14,15 @@ local function mkfile(P, data)
   return P
 end
 
+local function read_file(P)
+  local f, err = io.open(P, "rb")
+  if not f then return nil, err end
+  local data, err = f:read("*all")
+  f:close()
+  if data then return data end
+  return nil, err
+end
+
 local function up(str)
   return path.IS_WINDOWS and str:upper() or str
 end
@@ -152,6 +161,8 @@ else module( TEST_NAME, package.seeall, lunit.testcase ) end
 local cwd, files, dirs
 
 function teardown()
+  collectgarbage("collect") -- force clean lfs.dir
+  collectgarbage("collect")
   path.remove(path.join(cwd, '1', '2', '3', 'test.dat'))
   path.remove(path.join(cwd, '1', '2', '3', 'test.txt'))
   path.remove(path.join(cwd, '1', '2', '3', 'file.dat'))
@@ -247,6 +258,26 @@ function test_findfile()
   end, {skipfiles=true, recurse=true})
   assert_nil(next(params))
 
+end
+
+function test_findfile_mask()
+  params = clone(files)
+  path.each("./1/2/3/t*.*", function(f)
+    f = up(f)
+    assert_not_nil(params[f], "unexpected: " .. f)
+    params[f] = nil
+  end)
+  assert_not_nil(next(params))
+end
+
+function test_findfile_break()
+  local flag = false
+  path.each("./1/2/3/*.*", function()
+    assert_false(flag)
+    flag = true
+    return 'break'
+  end)
+  assert_true(flag)
 end
 
 local _ENV = _G local TEST_NAME = 'PATH rename'
@@ -354,5 +385,87 @@ function test_chdir()
   assert_false(path.exists('./1'))
   assert(path.isdir('./2'))
 end
+
+local _ENV = _G local TEST_NAME = 'PATH copy'
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd
+
+function teardown()
+  collectgarbage("collect") -- force clean lfs.dir
+  collectgarbage("collect")
+  path.remove(path.join(cwd, '1', 'a1.txt'))
+  path.remove(path.join(cwd, '1', 'a2.txt'))
+  path.remove(path.join(cwd, '1', 'b1.txt'))
+  path.remove(path.join(cwd, '1', 'b2.txt'))
+  path.remove(path.join(cwd, '1', '2', '3', 'a1.txt'))
+  path.remove(path.join(cwd, '1', '2', '3', 'a2.txt'))
+  path.remove(path.join(cwd, '1', '2', '3', 'b1.txt'))
+  path.remove(path.join(cwd, '1', '2', '3', 'b2.txt'))
+  path.remove(path.join(cwd, '1', '2', 'a1.txt'))
+  path.remove(path.join(cwd, '1', '2', 'a2.txt'))
+  path.remove(path.join(cwd, '1', '2', 'b1.txt'))
+  path.remove(path.join(cwd, '1', '2', 'b2.txt'))
+  path.remove(path.join(cwd, '1', '2', '3'))
+  path.remove(path.join(cwd, '1', '2'))
+  path.remove(path.join(cwd, '1'))
+
+end
+
+function setup()
+  cwd = assert_string(path.currentdir())
+  teardown()
+
+  path.mkdir(path.join(cwd, '1'))
+  mkfile(path.join(cwd, '1', 'a1.txt'), '12345')
+  mkfile(path.join(cwd, '1', 'a2.txt'), '54321')
+  mkfile(path.join(cwd, '1', 'b1.txt'), '12345')
+  mkfile(path.join(cwd, '1', 'b2.txt'), '54321')
+end
+
+function test_copy_fail()
+  assert_nil( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '1', 'a2.txt')
+  ))
+  assert_equal("54321", read_file(path.join(cwd, '1', 'a2.txt')))
+end
+
+function test_copy_overwrite()
+  assert( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '1', 'a2.txt'),
+    {overwrite = true}
+  ))
+  assert_equal("12345", read_file(path.join(cwd, '1', 'a2.txt')))
+end
+
+function test_copy_mkdir()
+  assert( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '1', '2', '3', 'a2.txt')
+  ))
+  assert_equal("12345", read_file(path.join(cwd, '1', '2', '3', 'a2.txt')))
+end
+
+function test_copy_batch()
+  assert(path.copy(
+    path.join(cwd, '1', 'a*.txt'),
+    path.join(cwd, '1', '2')
+  ))
+  assert_equal("12345", read_file(path.join(cwd, '1', '2', 'a1.txt')))
+  assert_equal("54321", read_file(path.join(cwd, '1', '2', 'a2.txt')))
+  assert_true(path.remove(path.join(cwd, '1', '2', 'a1.txt')))
+  assert_true(path.remove(path.join(cwd, '1', '2', 'a2.txt')))
+
+  local fname
+  path.each(path.join(cwd, '1', '2', '*'), function(f)
+    fname = f
+    return true
+  end)
+  assert_nil(fname)
+end
+
 
 lunit.run()
