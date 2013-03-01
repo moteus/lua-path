@@ -8,13 +8,15 @@ local PATH      = require "path.module"
 local lfs       = require "lfs"
 
 local function fs_foreach(path, match, cb, recursive)
-  for name in lfs.dir(path) do if name ~= "." and name ~= ".." then
+  local dir_next, dir = lfs.dir(path)
+  for name in dir_next, dir do if name ~= "." and name ~= ".." then
     local path_name = PATH.join(path, name)
     if match(path_name) then
-      if cb(path_name) then return 'break' end 
+      if cb(path_name) then if dir then dir:close() end return 'break' end
     end
     if recursive and PATH.isdir(path_name) then
       if 'break' == fs_foreach(path_name, match, cb, match) then
+        if dir then dir:close() end
         return 'break'
       end
     end
