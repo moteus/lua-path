@@ -10,7 +10,7 @@ local lfs       = require "lfs"
 local function fs_foreach(path, match, cb, recursive)
   for name in lfs.dir(path) do if name ~= "." and name ~= ".." then
     local path_name = PATH.join(path, name)
-    if match(path_name) then 
+    if match(path_name) then
       if cb(path_name) then return 'break' end 
     end
     if recursive and PATH.isdir(path_name) then
@@ -23,7 +23,7 @@ local function fs_foreach(path, match, cb, recursive)
 end
 
 local function filePat2rexPat(pat)
-  local pat = pat:gsub("%.","%%."):gsub("%*",".*"):gsub("%?", ".")
+  local pat = "^" .. pat:gsub("%.","%%."):gsub("%*",".*"):gsub("%?", ".") .. "$"
   if PATH.IS_WINDOWS then pat = pat:upper() end
   return pat
 end
@@ -81,7 +81,7 @@ local function findfile_t(option)
 
   local match = function(path)
     return 
-      mask_match(path) and
+      mask_match(PATH.basename(path)) and
       not (option.skipdirs and PATH.isdir(path)) and
       not (option.skipfiles and PATH.isfile(path))
   end
@@ -92,7 +92,7 @@ local function findfile_t(option)
     local function cb(path)
       local params = assert(get_params(path))
       if filter and (not filter(unpack(params))) then return end
-      callback(unpack(params))
+      return callback(unpack(params))
     end
 
     return fs_foreach(path, match, cb, option.recurse)
