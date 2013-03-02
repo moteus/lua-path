@@ -181,7 +181,7 @@ function PATH:rmdir(P)end
 
 --- Remove empty directory or file.
 -- depends on lfs
-function PATH:remove(P)end
+function PATH:remove(P, opt)end
 
 ---
 -- depends on lfs

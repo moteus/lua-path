@@ -7,6 +7,7 @@ local path_unx = path.new('/')
 
 local function mkfile(P, data)
   P = path.fullpath(P)
+  path.mkdir(path.dirname(P))
   local f, e = io.open(P, "w+b")
   if not f then return nil, err end
   if data then assert(f:write(data)) end
@@ -467,5 +468,57 @@ function test_copy_batch()
   assert_nil(fname)
 end
 
+local _ENV = _G local TEST_NAME = 'PATH clean dir'
+if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
+else module( TEST_NAME, package.seeall, lunit.testcase ) end
+
+local cwd
+
+function teardown()
+  local print = print
+  print = (path.remove(path.join(cwd, '1', '2', '3', 'b1.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', '3', 'b2.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', '3', 'b3.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', 'a1.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', 'a2.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', 'a3.txt')))
+  print = (path.remove(path.join(cwd, '1', '2', '3')))
+  print = (path.remove(path.join(cwd, '1', '2')))
+  print = (path.remove(path.join(cwd, '1')))
+end
+
+function setup()
+  cwd = assert_string(path.currentdir())
+  teardown()
+  mkfile(path.join(cwd, '1', '2', '3', 'b1.txt'))
+  mkfile(path.join(cwd, '1', '2', '3', 'b2.txt'))
+  mkfile(path.join(cwd, '1', '2', '3', 'b3.txt'))
+  mkfile(path.join(cwd, '1', '2', 'a1.txt'))
+  mkfile(path.join(cwd, '1', '2', 'a2.txt'))
+  mkfile(path.join(cwd, '1', '2', 'a3.txt'))
+end
+
+function test_clean()
+  assert_true(path.remove(path.join(cwd, "1", "*"), {recurse=true}))
+  assert_false(path.exists(path.join(cwd, "1", "2")))
+end
+
+function test_remove()
+  assert_string(path.exists(path.join(cwd, "1", "2", "a1.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a3.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+
+  assert_true(path.remove(path.join(cwd, "1", "?1.txt"), {recurse=true}))
+
+  assert_false (path.exists(path.join(cwd, "1", "2", "a1.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a3.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+end
 
 lunit.run()

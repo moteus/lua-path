@@ -524,10 +524,37 @@ function PATH:rmdir(P)
   return lfs.rmdir(P)
 end
 
-function PATH:remove(P)
-  assert_system(self)
+function PATH:remove_impl_batch(base, mask, opt)
+  if opt.recurse then
+    self:each(self:join(base, "*"), function(file)
+      self:remove_impl_batch(file, mask, opt)
+    end, {skipfiles=true})
+  end
+
+  local t = {}
+  local recurse = opt.recurse
+  self:each(self:join(base, mask), function(file) table.insert(t, file) end, opt)
+  opt.recurse = recurse
+
+  --- @todo handle errors
+  for _, file in ipairs(t) do self:remove_impl(file) end
+  return true
+end
+
+function PATH:remove_impl(P)
   if self:isdir(P) then return self:rmdir(P) end
   return os.remove((self:fullpath(P)))
+end
+
+function PATH:remove(P, opt)
+  assert_system(self)
+  local P = self:fullpath(P)
+  local dir, name = self:splitpath(P)
+  if (opt and opt.recurse) or name:find("[*?]") then -- batch mode
+    if not self.each then return nil, "not supported" end
+    return self:remove_impl_batch(dir, name, opt)
+  end
+  return self:remove_impl(P)
 end
 
 function PATH:rename(from,to,force)
