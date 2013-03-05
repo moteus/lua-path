@@ -116,19 +116,6 @@ local function FindNextFile(u, h, fd)
   return ret
 end
 
-local function findfile(u, path, cb)
-  local h, fd = u.FindFirstFile(path)
-  if not h then return nil, fd end
-  repeat
-    if cb(u.WIN32_FIND_DATA2TABLE(fd)) then
-      u.FindClose(h)
-      return true
-    end
-    ret = u.FindNextFile(h, fd)
-  until ret == 0;
-  return u.FindClose(h)
-end
-
 local _M = {
   A = {
     FindFirstFile   = function(...) return FindFirstFile(false, ...) end;
@@ -143,8 +130,5 @@ local _M = {
     WIN32_FIND_DATA2TABLE = WIN32_FIND_DATAW2LUA;
   };
 }
-
-_M.A.findfile = function(...) return findfile(_M.A, ...) end
-_M.W.findfile = function(...) return findfile(_M.W, ...) end
 
 return _M

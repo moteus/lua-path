@@ -69,7 +69,7 @@ else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
 local wcs
 
-function setup() wcs = require "path.win32.ffi.wcs" end
+function setup() wcs = require "path.win32.wcs".load("ffi") end
 
 function test() self_test(wcs) end
 
@@ -79,7 +79,7 @@ else module( TEST_NAME, package.seeall, lunit.testcase ) end
 
 local wcs
 
-function setup() wcs = require "path.win32.alien.wcs" end
+function setup() wcs = require "path.win32.wcs".load("alien") end
 
 function test() self_test(wcs) end
 

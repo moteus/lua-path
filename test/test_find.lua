@@ -53,8 +53,8 @@ function teardown()
 end
 
 function setup()
-  find = require "path.win32.ffi.find"
-  wcs  = require "path.win32.ffi.wcs"
+  find = require "path.win32.find" .load("ffi")
+  wcs  = require "path.win32.wcs"  .load("ffi")
   cwd  = assert_string(path.currentdir())
   mkfile(path.join(cwd, '1', '2', '3', 'a1.txt'))
   mkfile(path.join(cwd, '1', '2', '3', 'a2.txt'))
@@ -120,8 +120,8 @@ function teardown()
 end
 
 function setup()
-  find = require "path.win32.alien.find"
-  wcs  = require "path.win32.alien.wcs"
+  find = require "path.win32.find" .load("alien")
+  wcs  = require "path.win32.wcs"  .load("alien")
   cwd  = assert_string(path.currentdir())
   mkfile(path.join(cwd, '1', '2', '3', 'a1.txt'))
   mkfile(path.join(cwd, '1', '2', '3', 'a2.txt'))

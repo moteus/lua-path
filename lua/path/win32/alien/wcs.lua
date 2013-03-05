@@ -7,14 +7,6 @@ local GetLastError         = assert(kernel32.GetLastError)
 local DWORD = "uint"
 local WCHAR_SIZE = 2
 
-local CP_ACP            = 0           -- default to ANSI code page
-local CP_OEM            = 1           -- default to OEM  code page
-local CP_MAC            = 2           -- default to MAC  code page
-local CP_THREAD_ACP     = 3           -- current thread's ANSI code page
-local CP_SYMBOL         = 42          -- SYMBOL translations
-local CP_UTF7           = 65000       -- UTF-7 translation
-local CP_UTF8           = 65001       -- UTF-8 translation
-
 -- int __stdcall MultiByteToWideChar(UINT cp, DWORD flag, const char* src, int srclen, wchar_t* dst, int dstlen);
 MultiByteToWideChar_:types{abi="stdcall", ret = "int",
   "uint",   -- cp
@@ -118,35 +110,11 @@ local function LUA_W2M(...)
   return dst:tostring(dstlen)
 end
 
-local wcstoutf8 = function (str) return LUA_W2M(str, CP_UTF8) end
-local utf8towcs = function (str) return LUA_M2W(str, CP_UTF8) end
-
-local wcstoansi = function (str) return LUA_W2M(str, CP_ACP)  end
-local ansitowcs = function (str) return LUA_M2W(str, CP_ACP)  end
-
-local wcstooem  = function (str) return LUA_W2M(str, CP_OEM) end
-local oemtowcs  = function (str) return LUA_M2W(str, CP_OEM) end
-
 local _M = {
   MultiByteToWideChar = MultiByteToWideChar;
   WideCharToMultiByte = WideCharToMultiByte;
   mbstowcs            = LUA_M2W;
   wcstombs            = LUA_W2M;
-  wcstoutf8           = wcstoutf8;
-  utf8towcs           = utf8towcs;
-  wcstoansi           = wcstoansi;
-  ansitowcs           = ansitowcs;
-  wcstooem            = wcstooem;
-  oemtowcs            = oemtowcs;
-  CP = {
-    ACP        = CP_ACP;
-    OEM        = CP_OEM;
-    MAC        = CP_MAC;
-    THREAD_ACP = CP_THREAD_ACP;
-    SYMBOL     = CP_SYMBOL;
-    UTF7       = CP_UTF7;
-    UTF8       = CP_UTF8;
-  }
 }
 
 return _M
