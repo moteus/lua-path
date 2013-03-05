@@ -83,7 +83,7 @@ local WIN32_FIND_DATAW2LUA = function(s)
 end;
 
 local function FindClose(h)
-  return FindClose_(autil.gc_null(h))
+  FindClose_(autil.gc_null(h))
 end
 
 local function FindFirstFile(u, P)

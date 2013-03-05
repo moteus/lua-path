@@ -200,6 +200,16 @@ function test_attr()
   for P in pairs(files)do assert(path.exists(P)) end
   for P in pairs(files)do assert(path.isfile(P)) end
   for P in pairs(files)do assert_equal(5, path.size(P)) end
+
+  local ts = os.time()
+  path.each("./1/*", function(f)
+    assert(path.isfile(f))
+    assert(path.touch(f, ts))
+  end, {skipdirs=true, recurse=true})
+
+  path.each("./1/*", "ft", function(f,mt)
+    assert_equal(ts, mt)
+  end, {skipdirs=true, recurse=true})
 end
 
 function test_findfile()
