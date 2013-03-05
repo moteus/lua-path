@@ -1,6 +1,5 @@
 local lunit = require "lunit"
 local path  = require "path"
-local findfile = require "path.findfile"
 
 local path_win = path.new('\\')
 local path_unx = path.new('/')
