@@ -587,7 +587,8 @@ if not PATH.size then
   end
 end
 
-local findfile = require "path.findfile"
+local findfile_impl = require "path.lfs.find".findfile_t
+local findfile = require "path.findfile".load(findfile_impl)
 
 function PATH:each(...)
   assert_system(self)

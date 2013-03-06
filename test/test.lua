@@ -1,4 +1,10 @@
-local lunit = require "lunit"
+local lunit    = require "lunit"
+local skip     = function (msg) return function() lunit.fail(msg) end end
+local IS_LUA52 = _VERSION >= 'Lua 5.2'
+local SEEALL   = IS_LUA52 and 'seeall' or package.seeall
+local TCASE    = (not IS_LUA52) and lunit.testcase or nil
+local MODULE   = IS_LUA52 and lunit.module or module
+
 local path  = require "path"
 
 local path_win = path.new('\\')
@@ -35,9 +41,7 @@ local function clone(t, o)
   return o
 end
 
-local _ENV = _G local TEST_NAME = 'PATH manipulation'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH manipulation', SEEALL, TCASE)
 
 function test_penlight_1()
   local function testpath(pth,p1,p2,p3)
@@ -109,9 +113,7 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
-local _ENV = _G local TEST_NAME = 'PATH system error'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH system error', SEEALL, TCASE)
 
 function test()
   local path = path.IS_WINDOWS and path_unx or path_win
@@ -119,9 +121,7 @@ function test()
   assert_error(function() path.size('./1.txt') end)
 end
 
-local _ENV = _G local TEST_NAME = 'PATH make dir'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH make dir', SEEALL, TCASE)
 
 local cwd
 
@@ -154,9 +154,7 @@ function test_clean()
   assert_false( path.exists(path.join(cwd, '1', '2', '3')) )
 end
 
-local _ENV = _G local TEST_NAME = 'PATH findfile'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH findfile', SEEALL, TCASE)
 
 local cwd, files, dirs
 
@@ -290,9 +288,7 @@ function test_findfile_break()
   assert_true(flag)
 end
 
-local _ENV = _G local TEST_NAME = 'PATH rename'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH rename', SEEALL, TCASE)
 
 local cwd
 
@@ -370,9 +366,7 @@ function test_rename_force_dir()
   assert(path.exists(path.join(cwd, '1', 'to.dat')))
 end
 
-local _ENV = _G local TEST_NAME = 'PATH chdir'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH chdir', SEEALL, TCASE)
 
 local cwd
 
@@ -396,9 +390,7 @@ function test_chdir()
   assert(path.isdir('./2'))
 end
 
-local _ENV = _G local TEST_NAME = 'PATH copy'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH copy', SEEALL, TCASE)
 
 local cwd
 
@@ -477,9 +469,7 @@ function test_copy_batch()
   assert_nil(fname)
 end
 
-local _ENV = _G local TEST_NAME = 'PATH clean dir'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local _ENV = MODULE('PATH clean dir', SEEALL, TCASE)
 
 local cwd
 

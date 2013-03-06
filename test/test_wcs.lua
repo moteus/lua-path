@@ -1,6 +1,16 @@
-local path = require "path"
-if not path.IS_WINDOWS then return end
-local lunit = require "lunit"
+local lunit    = require "lunit"
+local skip     = function (msg) return function() lunit.fail(msg) end end
+local IS_LUA52 = _VERSION >= 'Lua 5.2'
+local SEEALL   = IS_LUA52 and 'seeall' or package.seeall
+local TCASE    = (not IS_LUA52) and lunit.testcase or nil
+local MODULE   = IS_LUA52 and lunit.module or module
+
+local path  = require "path"
+if not path.IS_WINDOWS then
+  local _ENV = MODULE('WCS', SEEALL, TCASE)
+  test = skip"windows only tests"
+  return lunit.run()
+end
 
 local function self_test(wcs)
   local assert = lunit.assert
@@ -63,9 +73,14 @@ local function self_test(wcs)
   assert(utf8         == wcs.wcstoutf8(utf16:sub(3))) -- without bom
 end
 
-local _ENV = _G local TEST_NAME = 'WCS ffi'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+local function prequire(...)
+  local ok, mod = pcall(require, ...)
+  if not ok then return nil, mod end
+  return mod
+end
+
+local _ENV = MODULE('WCS ffi', SEEALL, TCASE)
+if not prequire"ffi" then test = skip"ffi module not found" else 
 
 local wcs
 
@@ -73,14 +88,28 @@ function setup() wcs = require "path.win32.wcs".load("ffi") end
 
 function test() self_test(wcs) end
 
-local _ENV = _G local TEST_NAME = 'WCS alien'
-if _VERSION >= 'Lua 5.2' then  _ENV = lunit.module(TEST_NAME,'seeall')
-else module( TEST_NAME, package.seeall, lunit.testcase ) end
+end
+
+local _ENV = MODULE('WCS alien', SEEALL, TCASE)
+if not prequire"alien" then test = skip"alien module not found" else 
 
 local wcs
 
 function setup() wcs = require "path.win32.wcs".load("alien") end
 
 function test() self_test(wcs) end
+
+end
+
+local _ENV = MODULE('WCS afx', SEEALL, TCASE)
+if not prequire"afx" then test = skip"afx module not found" else 
+
+local wcs
+
+function setup() wcs = require "path.win32.wcs".load("afx") end
+
+function test() self_test(wcs) end
+
+end
 
 lunit.run()
