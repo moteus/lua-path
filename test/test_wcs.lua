@@ -1,13 +1,10 @@
-local lunit    = require "lunit"
-local skip     = function (msg) return function() lunit.fail(msg) end end
-local IS_LUA52 = _VERSION >= 'Lua 5.2'
-local SEEALL   = IS_LUA52 and 'seeall' or package.seeall
-local TCASE    = (not IS_LUA52) and lunit.testcase or nil
-local MODULE   = IS_LUA52 and lunit.module or module
+local lunit = require "lunit"
+local tutil = require "utils"
+local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
 
 local path  = require "path"
 if not path.IS_WINDOWS then
-  local _ENV = MODULE('WCS', SEEALL, TCASE)
+  local _ENV = TEST_CASE('WCS')
   test = skip"windows only tests"
   return lunit.run()
 end
@@ -79,7 +76,7 @@ local function prequire(...)
   return mod
 end
 
-local _ENV = MODULE('WCS ffi', SEEALL, TCASE)
+local _ENV = TEST_CASE('WCS ffi')
 if not prequire"ffi" then test = skip"ffi module not found" else 
 
 local wcs
@@ -90,7 +87,7 @@ function test() self_test(wcs) end
 
 end
 
-local _ENV = MODULE('WCS alien', SEEALL, TCASE)
+local _ENV = TEST_CASE('WCS alien')
 if not prequire"alien" then test = skip"alien module not found" else 
 
 local wcs
@@ -101,7 +98,7 @@ function test() self_test(wcs) end
 
 end
 
-local _ENV = MODULE('WCS afx', SEEALL, TCASE)
+local _ENV = TEST_CASE('WCS afx')
 if not prequire"afx" then test = skip"afx module not found" else 
 
 local wcs
@@ -112,4 +109,4 @@ function test() self_test(wcs) end
 
 end
 
-lunit.run()
+if not LUNIT_RUN then lunit.run() end

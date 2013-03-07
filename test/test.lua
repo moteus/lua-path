@@ -1,9 +1,6 @@
-local lunit    = require "lunit"
-local skip     = function (msg) return function() lunit.fail(msg) end end
-local IS_LUA52 = _VERSION >= 'Lua 5.2'
-local SEEALL   = IS_LUA52 and 'seeall' or package.seeall
-local TCASE    = (not IS_LUA52) and lunit.testcase or nil
-local MODULE   = IS_LUA52 and lunit.module or module
+local lunit = require "lunit"
+local tutil = require "utils"
+local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
 
 local path  = require "path"
 
@@ -41,7 +38,7 @@ local function clone(t, o)
   return o
 end
 
-local _ENV = MODULE('PATH manipulation', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH manipulation')
 
 function test_penlight_1()
   local function testpath(pth,p1,p2,p3)
@@ -113,7 +110,7 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
-local _ENV = MODULE('PATH system error', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH system error')
 
 function test()
   local path = path.IS_WINDOWS and path_unx or path_win
@@ -121,7 +118,7 @@ function test()
   assert_error(function() path.size('./1.txt') end)
 end
 
-local _ENV = MODULE('PATH make dir', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH make dir')
 
 local cwd
 
@@ -154,7 +151,7 @@ function test_clean()
   assert_false( path.exists(path.join(cwd, '1', '2', '3')) )
 end
 
-local _ENV = MODULE('PATH findfile', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH findfile')
 
 local cwd, files, dirs
 
@@ -288,7 +285,7 @@ function test_findfile_break()
   assert_true(flag)
 end
 
-local _ENV = MODULE('PATH rename', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH rename')
 
 local cwd
 
@@ -366,7 +363,7 @@ function test_rename_force_dir()
   assert(path.exists(path.join(cwd, '1', 'to.dat')))
 end
 
-local _ENV = MODULE('PATH chdir', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH chdir')
 
 local cwd
 
@@ -390,7 +387,7 @@ function test_chdir()
   assert(path.isdir('./2'))
 end
 
-local _ENV = MODULE('PATH copy', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH copy')
 
 local cwd
 
@@ -469,7 +466,7 @@ function test_copy_batch()
   assert_nil(fname)
 end
 
-local _ENV = MODULE('PATH clean dir', SEEALL, TCASE)
+local _ENV = TEST_CASE('PATH clean dir')
 
 local cwd
 
@@ -520,4 +517,4 @@ function test_remove()
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
 end
 
-lunit.run()
+if not LUNIT_RUN then lunit.run() end

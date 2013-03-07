@@ -29,8 +29,5 @@ end
 
 target('test', install, function()
   local test_dir = J(ROOT,'test')
-  run(J(test_dir,'test_wcs.lua'), test_dir)
-  run(J(test_dir,'test_find.lua'), test_dir)
-  run(J(test_dir,'test_each.lua'), test_dir)
-  run(J(test_dir,'test.lua'), test_dir)
+  run(J(test_dir,'run.lua'), test_dir)
 end)
