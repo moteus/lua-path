@@ -108,7 +108,7 @@ function PATH:join(...)
 end
 
 function PATH:splitext(P)
-  local s1,s2 = string.match(P,"(.-)([.][^\\/]*)$")
+  local s1,s2 = string.match(P,"(.-)([.][^\\/.]*)$")
   if s1 then return s1,s2 end
   return P, ''
 end

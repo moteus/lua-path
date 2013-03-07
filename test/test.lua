@@ -40,15 +40,15 @@ end
 
 local _ENV = TEST_CASE('PATH manipulation')
 
-function test_penlight_1()
-  local function testpath(pth,p1,p2,p3)
-    local dir,rest = path.splitpath(pth)
-    local name,ext = path.splitext(rest)
-    assert_equal(dir,p1)
-    assert_equal(name,p2)
-    assert_equal(ext,p3)
-  end
+local function testpath(pth,p1,p2,p3)
+  local dir,rest = path.splitpath(pth)
+  local name,ext = path.splitext(rest)
+  assert_equal(dir,p1)
+  assert_equal(name,p2)
+  assert_equal(ext,p3)
+end
 
+function test_penlight_1()
   testpath ([[/bonzo/dog_stuff/cat.txt]],[[/bonzo/dog_stuff]],'cat','.txt')
   testpath ([[/bonzo/dog/cat/fred.stuff]],'/bonzo/dog/cat','fred','.stuff')
   testpath ([[../../alice/jones]],'../../alice','jones','')
@@ -97,6 +97,13 @@ function test_split()
   assert_equal('host', path_win:root('\\\\host\\a\\b\\c'))
   assert_equal('a:',   path_win:root('a:\\b\\c'))
   assert_equal('',     path_win:root('\\b\\c'))
+end
+
+function test_splitext()
+  testpath ('.log','','','.log')
+  testpath ('log','','log','')
+  testpath ('.log/','.log','','')
+  testpath ('.1001.log','','.1001','.log')
 end
 
 function test_norm()
