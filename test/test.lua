@@ -569,6 +569,13 @@ function test_clean()
   assert_false(path.exists(path.join(cwd, "1", "2")))
 end
 
+function test_clean_files()
+  assert_true(path.remove(path.join(cwd, "1", "*"), {skipdirs=true;recurse=true}))
+  assert(path.exists(path.join(cwd, "1", "2")))
+  assert(path.exists(path.join(cwd, "1", "2", "3")))
+  assert_false(path.exists(path.join(cwd, "1", "2", "3", "a1.txt")))
+end
+
 function test_remove()
   assert_string(path.exists(path.join(cwd, "1", "2", "a1.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "a2.txt")))
@@ -585,6 +592,57 @@ function test_remove()
   assert_false (path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+end
+
+function test_remove_accept()
+  local options options = {
+    accept = function(src, opt)
+      local key = src:upper()
+      assert_equal(options, opt)
+      return not not path.basename(src):find("^.[12]")
+    end;recurse = true;
+  }
+  assert_true(path.remove(path.join(cwd, "1", "*"), options))
+
+  assert_false (path.exists(path.join(cwd, "1", "2", "a1.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "a2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a3.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+end
+
+function test_remove_error_skip()
+  local n = 0
+  assert(path.remove(path.join(cwd, '1', '*'),{
+    skipdirs = true; recurse  = true;
+    accept = function(src)
+      assert(path.remove(src))
+      return true
+    end;
+    error = function(err, src)
+      n = n + 1
+      return true
+    end;
+  }))
+  assert_equal(6, n)
+end
+
+function test_remove_error_break()
+  local flag = false
+  assert(path.remove(path.join(cwd, '1', '*'),{
+    skipdirs = true; recurse  = true;
+    accept = function(src)
+      assert(path.remove(src))
+      return true
+    end;
+    error = function(err, src)
+      assert_false(false)
+      flag = true
+      return false
+    end;
+  }))
+  assert_true(flag)
 end
 
 if not LUNIT_RUN then lunit.run() end

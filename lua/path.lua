@@ -531,13 +531,28 @@ function PATH:remove_impl_batch(base, mask, opt)
     end, {skipfiles=true})
   end
 
+  local accept  = opt and opt.accept
+  local onerror = opt and opt.error
   local t = {}
   local recurse = opt.recurse
-  self:each(self:join(base, mask), function(file) table.insert(t, file) end, opt)
+  opt.recurse = false
+  self:each(self:join(base, mask), function(file)
+    if accept then
+      if not accept(file, opt) then return end
+    end
+    table.insert(t, file)
+  end, opt)
   opt.recurse = recurse
 
   --- @todo handle errors
-  for _, file in ipairs(t) do self:remove_impl(file) end
+  for _, file in ipairs(t) do
+    local ok, err = self:remove_impl(file)
+    if onerror then
+      if not onerror(err, file, opt) then
+        return true
+      end
+    end
+  end
   return true
 end
 
