@@ -656,12 +656,23 @@ end
 
 function PATH:copy_impl_batch(src_dir, src_name, dst_dir, opt)
   local overwrite = opt and opt.overwrite
+  local accept    = opt and opt.accept
+  local onerror   = opt and opt.error
+
   self:each(self:join(src_dir, src_name), function(path)
     local rel = path:sub(#src_dir + 2)
     local dst = self:join(dst_dir, rel)
+    if accept then
+      local ok = accept(path, dst, opt)
+      if not ok then return end
+    end
     self:mkdir(self:dirname(dst))
     local ok, err = CopyFile(path, dst, not overwrite)
-    --- @todo check error
+    if not ok and onerror then
+      if not onerror(err, path, dst, opt) then -- break
+        return true
+      end
+    end
   end, {recurse = opt and opt.recurse})
   return true
 end

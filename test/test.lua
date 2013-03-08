@@ -396,7 +396,7 @@ end
 
 local _ENV = TEST_CASE('PATH copy')
 
-local cwd
+local cwd, files
 
 function teardown()
   collectgarbage("collect") -- force clean lfs.dir
@@ -428,6 +428,13 @@ function setup()
   mkfile(path.join(cwd, '1', 'a2.txt'), '54321')
   mkfile(path.join(cwd, '1', 'b1.txt'), '12345')
   mkfile(path.join(cwd, '1', 'b2.txt'), '54321')
+
+  files = {
+    [path.join(cwd, '1', 'a1.txt'):upper()] = true;
+    [path.join(cwd, '1', 'a2.txt'):upper()] = true;
+    [path.join(cwd, '1', 'b1.txt'):upper()] = true;
+    [path.join(cwd, '1', 'b2.txt'):upper()] = true;
+  }
 end
 
 function test_copy_fail()
@@ -471,6 +478,62 @@ function test_copy_batch()
     return true
   end)
   assert_nil(fname)
+end
+
+function test_copy_accept()
+  local options options = {
+    accept = function(src, des, opt)
+      local key = src:upper()
+      assert_true(files[key])
+      assert_equal(options, opt)
+      files[key] = nil;
+      return not path.basename(src):find("^b")
+    end;
+  }
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1', '2'),
+    options
+  ))
+  assert_nil(next(files))
+
+  assert_equal("12345", read_file(path.join(cwd, '1', '2', 'a1.txt')))
+  assert_equal("54321", read_file(path.join(cwd, '1', '2', 'a2.txt')))
+  assert_false(path.exists(path.join(cwd, '1', '2', 'b1.txt')))
+  assert_false(path.exists(path.join(cwd, '1', '2', 'b2.txt')))
+end
+
+function test_copy_error_skip()
+  local options options = {
+    error = function(err, src, des, opt)
+      local key = src:upper()
+      assert_true(files[key])
+      assert_equal(options, opt)
+      files[key] = nil;
+      return true
+    end;
+  }
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1'),
+    options
+  ))
+  assert_nil(next(files))
+end
+
+function test_copy_error_break()
+  local flag = false
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1'),{
+    error = function()
+      assert_false(flag)
+      flag = true
+      return false
+    end
+    }
+  ))
+  assert_true(flag)
 end
 
 local _ENV = TEST_CASE('PATH clean dir')
