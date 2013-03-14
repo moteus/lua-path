@@ -10,6 +10,8 @@ local achar_t  = ffi.typeof'char[?]'
 local awchar_t = ffi.typeof'wchar_t[?]'
 local pchar_t  = ffi.typeof'char*'
 local pwchar_t = ffi.typeof'wchar_t*'
+-- The data area passed to a system call is too small.
+local ERROR_INSUFFICIENT_BUFFER                =   122; -- 0x0000007A
 
 local function strnlen(data, n)
   if type(data) == 'string' then
@@ -49,6 +51,7 @@ local function wcsnlen(data, n)
 end
 
 local function MultiByteToWideChar(src, cp)
+  if not src or #src == 0 then return src, 0 end
   local flag = true
   local buflen = strnlen(src)
   local dst = ffi.new(awchar_t, buflen + 1) -- eos
@@ -72,7 +75,7 @@ local function WideCharToMultiByte(src, cp)
     local ret = ffi.C.WideCharToMultiByte(cp, 0, src, srclen, dst, buflen, nil, nil)
     if ret <= 0 then 
       local err = C.GetLastError()
-      if err == 122 then -- buffer too small
+      if err == ERROR_INSUFFICIENT_BUFFER then
         buflen = math.ceil(1.5 * buflen)
       else
         return nil, err
@@ -88,15 +91,17 @@ local function WideCharToMultiByte(src, cp)
   return dst,0
 end
 
-local function LUA_W2M(...)
-  local dst, dstlen = WideCharToMultiByte(...)
+local function LUA_W2M(src,...)
+  if not src or #src == 0 then return src end
+  local dst, dstlen = WideCharToMultiByte(src,...)
   if not dst then return nil, dstlen end
   return ffi.string(dst, dstlen)
 end
 
 local const_pchar_t = ffi.typeof'char*'
-local function LUA_M2W(...)
-  local dst, dstlen = MultiByteToWideChar(...)
+local function LUA_M2W(src,...)
+  if not src or #src == 0 then return src end
+  local dst, dstlen = MultiByteToWideChar(src,...)
   if not dst then return nil, dstlen end
   return ffi.string(ffi.cast(const_pchar_t, dst), dstlen*2)
 end

@@ -17,11 +17,27 @@ local function pack(n, str)
   ]]
 end
 
+local function ztrim(str)
+  local pos = 1
+  while true do
+    pos = string.find(str, "\000\000", pos, true)
+    if not pos then return str end
+    if 0 ~= (pos % 2) then return string.sub(str, 1, pos - 1) end
+    pos = pos + 1
+  end
+end
+
 ffi.cdef [[
   static const int MAX_PATH = 260;
   typedef uint32_t DWORD;
   typedef char    CHAR;
   typedef wchar_t WCHAR;
+  typedef uint32_t DEVICE_TYPE;
+  typedef uint32_t ULONG;
+  typedef void*    HANDLE;
+  typedef void*    HLOCAL;
+  typedef void*    LPVOID;
+  typedef uint32_t BOOL;
 ]]
 
 pcdef(pack(1, [[ // GET_FILEEX_INFO_LEVELS
@@ -79,6 +95,14 @@ pcdef(pack(1, [[ // WIN32_FIND_DATAW
   } WIN32_FIND_DATAW, *PWIN32_FIND_DATAW;
 ]]))
 
+pcdef(pack(1, [[ // STORAGE_DEVICE_NUMBER
+  typedef struct _STORAGE_DEVICE_NUMBER {
+    DEVICE_TYPE DeviceType;
+    ULONG       DeviceNumber;
+    ULONG       PartitionNumber;
+  } STORAGE_DEVICE_NUMBER, *PSTORAGE_DEVICE_NUMBER;
+]]))
+
 local CTYPES = {
   DWORD     = ffi.typeof("DWORD");
   PCHAR     = ffi.typeof("CHAR*");
@@ -90,6 +114,7 @@ local CTYPES = {
   FILETIME                  = ffi.typeof("FILETIME");
   WIN32_FIND_DATAA          = ffi.typeof("WIN32_FIND_DATAA");
   WIN32_FIND_DATAW          = ffi.typeof("WIN32_FIND_DATAW");
+  STORAGE_DEVICE_NUMBER     = ffi.typeof("STORAGE_DEVICE_NUMBER");
 }
 
 local c2lua 
@@ -113,15 +138,16 @@ c2lua = {
     local res = c2lua.WIN32_FILE_ATTRIBUTE_DATA(s)
     local pstr = ffi.cast(CTYPES.PCHAR, s.cFileName)
     local str = ffi.string(pstr, C.MAX_PATH * 2)
-    res.cFileName = string.gsub(str,  "%z%z.*$", "");
+    res.cFileName = ztrim(str)
     return res
   end;
 
 }
 
 local _M = {
-  CTYPES = CTYPES;
-  CTYPE2LUA = c2lua;
+  INVALID_HANDLE   = ffi.cast("void*", -1);
+  CTYPES           = CTYPES;
+  CTYPE2LUA        = c2lua;
 }
 
 return _M

@@ -396,7 +396,7 @@ end
 
 local _ENV = TEST_CASE('PATH copy')
 
-local cwd
+local cwd, files
 
 function teardown()
   collectgarbage("collect") -- force clean lfs.dir
@@ -428,6 +428,13 @@ function setup()
   mkfile(path.join(cwd, '1', 'a2.txt'), '54321')
   mkfile(path.join(cwd, '1', 'b1.txt'), '12345')
   mkfile(path.join(cwd, '1', 'b2.txt'), '54321')
+
+  files = {
+    [path.join(cwd, '1', 'a1.txt'):upper()] = true;
+    [path.join(cwd, '1', 'a2.txt'):upper()] = true;
+    [path.join(cwd, '1', 'b1.txt'):upper()] = true;
+    [path.join(cwd, '1', 'b2.txt'):upper()] = true;
+  }
 end
 
 function test_copy_fail()
@@ -473,6 +480,64 @@ function test_copy_batch()
   assert_nil(fname)
 end
 
+function test_copy_accept()
+  local options options = {
+    skipdirs = true;
+    accept = function(src, des, opt)
+      local key = src:upper()
+      assert_true(files[key])
+      assert_equal(options, opt)
+      files[key] = nil;
+      return not path.basename(src):find("^b")
+    end;
+  }
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1', '2'),
+    options
+  ))
+  assert_nil(next(files))
+
+  assert_equal("12345", read_file(path.join(cwd, '1', '2', 'a1.txt')))
+  assert_equal("54321", read_file(path.join(cwd, '1', '2', 'a2.txt')))
+  assert_false(path.exists(path.join(cwd, '1', '2', '2')))
+  assert_false(path.exists(path.join(cwd, '1', '2', 'b1.txt')))
+  assert_false(path.exists(path.join(cwd, '1', '2', 'b2.txt')))
+end
+
+function test_copy_error_skip()
+  local options options = {
+    error = function(err, src, des, opt)
+      local key = src:upper()
+      assert_true(files[key])
+      assert_equal(options, opt)
+      files[key] = nil;
+      return true
+    end;
+  }
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1*'),
+    options
+  ))
+  assert_nil(next(files))
+end
+
+function test_copy_error_break()
+  local flag = false
+  assert(path.copy(
+    path.join(cwd, '1', '*'),
+    path.join(cwd, '1*'),{
+    error = function()
+      assert_false(flag)
+      flag = true
+      return false
+    end
+    }
+  ))
+  assert_true(flag)
+end
+
 local _ENV = TEST_CASE('PATH clean dir')
 
 local cwd
@@ -502,8 +567,15 @@ function setup()
 end
 
 function test_clean()
-  assert_true(path.remove(path.join(cwd, "1", "*"), {recurse=true}))
+  assert_equal(8, path.remove(path.join(cwd, "1", "*"), {recurse=true}))
   assert_false(path.exists(path.join(cwd, "1", "2")))
+end
+
+function test_clean_files()
+  assert_equal(6, path.remove(path.join(cwd, "1", "*"), {skipdirs=true;recurse=true}))
+  assert(path.exists(path.join(cwd, "1", "2")))
+  assert(path.exists(path.join(cwd, "1", "2", "3")))
+  assert_false(path.exists(path.join(cwd, "1", "2", "3", "a1.txt")))
 end
 
 function test_remove()
@@ -514,7 +586,7 @@ function test_remove()
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
 
-  assert_true(path.remove(path.join(cwd, "1", "?1.txt"), {recurse=true}))
+  assert_equal(2, path.remove(path.join(cwd, "1", "?1.txt"), {recurse=true}))
 
   assert_false (path.exists(path.join(cwd, "1", "2", "a1.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "a2.txt")))
@@ -522,6 +594,57 @@ function test_remove()
   assert_false (path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
   assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+end
+
+function test_remove_accept()
+  local options options = {
+    accept = function(src, opt)
+      local key = src:upper()
+      assert_equal(options, opt)
+      return not not path.basename(src):find("^.[12]")
+    end;recurse = true;
+  }
+  assert_equal(4, path.remove(path.join(cwd, "1", "*"), options))
+
+  assert_false (path.exists(path.join(cwd, "1", "2", "a1.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "a2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "a3.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "3", "b1.txt")))
+  assert_false (path.exists(path.join(cwd, "1", "2", "3", "b2.txt")))
+  assert_string(path.exists(path.join(cwd, "1", "2", "3", "b3.txt")))
+end
+
+function test_remove_error_skip()
+  local n = 0
+  assert(path.remove(path.join(cwd, '1', '*'),{
+    skipdirs = true; recurse  = true;
+    accept = function(src)
+      assert(path.remove(src))
+      return true
+    end;
+    error = function(err, src)
+      n = n + 1
+      return true
+    end;
+  }))
+  assert_equal(6, n)
+end
+
+function test_remove_error_break()
+  local flag = false
+  assert(path.remove(path.join(cwd, '1', '*'),{
+    skipdirs = true; recurse  = true;
+    accept = function(src)
+      assert(path.remove(src))
+      return true
+    end;
+    error = function(err, src)
+      assert_false(false)
+      flag = true
+      return false
+    end;
+  }))
+  assert_true(flag)
 end
 
 if not LUNIT_RUN then lunit.run() end

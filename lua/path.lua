@@ -89,6 +89,11 @@ function PATH:normolize(P)
     end
   end
 
+  if self.IS_WINDOWS and #P <= 3 and P:sub(2,2) == ':' then -- c: => c:\ or c:\ => c:\
+    if #P == 2 then return P .. self.DIR_SEP end
+    return P
+  end
+ 
   return self:remove_dir_end(P)
 end
 
@@ -156,8 +161,12 @@ function PATH:isfullpath(P)
   return (self:root(P) ~= '') and P
 end
 
---
--- PATH based on system 
+function PATH:user_home()
+  if IS_WINDOWS then
+    return os.getenv('USERPROFILE') or PATH:join(os.getenv('HOMEDRIVE'), os.getenv('HOMEPATH'))
+  end
+  return os.getenv('HOME')
+end
 
 local function prequire(m) 
   local ok, err = pcall(require, m) 
@@ -165,229 +174,39 @@ local function prequire(m)
   return err
 end
 
+local fs 
+
+if not fs and IS_WINDOWS then
+  local fsload = require"path.win32.fs".load
+  local ok, mod = pcall(fsload, "ffi", "A") or pcall(fsload, "alien", "A")
+  fs = ok and mod
+end
+
+if not fs then
+  fs = prequire"path.lfs.fs"
+end
+
+if fs then
+
+--
+-- PATH based on system 
+
 local function assert_system(self)
   if PATH.IS_WINDOWS then assert(self.IS_WINDOWS) return end
   assert(not self.IS_WINDOWS)
 end
 
-local GetFileAttributes, GetLastError, GetFileAttributesEx, GetFileSize, GetTempPath, 
-  CopyFile
-if IS_WINDOWS then
-  local MAX_PATH  = 260
-
-  if USE_ALIEN and not GetFileAttributes then -- alien
-    local alien = prequire "alien"
-    if alien then
-      local kernel32 = assert(alien.load("kernel32.dll"))
-      GetFileAttributes = assert(kernel32.GetFileAttributesA) -- win2k+
-      GetFileAttributes:types{abi="stdcall", ret = "uint", "string"}
-      GetLastError = kernel32.GetLastError
-      GetLastError:types{ret ='int', abi='stdcall'}
-      local CopyFile_ = kernel32.CopyFileA
-      CopyFile_:types{abi='stdcall', ret ='int', "string", "string", "int"}
-      CopyFile = function(from, src, f)
-        local res = 1 == CopyFile_(from, src, f and 1 or 0)
-        if not res then return nil, GetLastError() end
-        return res
-      end
-
-      local GetFileAttributesExA_ = kernel32.GetFileAttributesExA -- winXP+
-      if GetFileAttributesExA_ then
-        local WIN32_FILE_ATTRIBUTE_DATA = alien.defstruct{
-          {"dwFileAttributes",      "uint" };
-          {"ftCreationTime_low",    "uint" };
-          {"ftCreationTime_high",   "uint" };
-          {"ftLastAccessTime_low",  "uint" };
-          {"ftLastAccessTime_high", "uint" };
-          {"ftLastWriteTime_low",   "uint" };
-          {"ftLastWriteTime_high",  "uint" };
-          {"nFileSizeHigh",         "uint" };
-          {"nFileSizeLow",          "uint" };
-        }
-        GetFileAttributesExA_:types{abi="stdcall", ret = "int", "string", "int", "pointer"}
-        GetFileAttributesEx = function (P)
-          local fileInfo = WIN32_FILE_ATTRIBUTE_DATA:new()
-          local ret = GetFileAttributesExA_(P, 0, fileInfo())
-          if ret == 0 then return nil, GetLastError() end
-          return {
-            dwFileAttributes = fileInfo.dwFileAttributes;
-            ftCreationTime   = {fileInfo.ftCreationTime_low,   fileInfo.ftCreationTime_high};
-            ftLastAccessTime = {fileInfo.ftLastAccessTime_low, fileInfo.ftLastAccessTime_high};
-            ftLastWriteTime  = {fileInfo.ftLastWriteTime_low,  fileInfo.ftLastWriteTime_high};
-            nFileSize        = {fileInfo.nFileSizeLow,         fileInfo.nFileSizeHigh};
-          }
-        end
-      end
-
-      local GetTempPathA_ = kernel32.GetTempPathA -- winXP+
-      if GetTempPathA_ then
-        GetTempPathA_:types{abi="stdcall", ret = "uint", "uint", "string"}
-        GetTempPath = function()
-          local buf = alien.buffer(MAX_PATH + 1);
-          local ret = GetTempPathA_(#buf, buf)
-          if ret == 0 then return nil, GetLastError() end
-          return tostring(buf)
-        end
-      end
-    end
-  end
-
-  if USE_FFI   and not GetFileAttributes then -- ffi
-    local ffi = prequire "ffi"
-    if ffi then
-      ffi.cdef [[
-          #pragma pack(push)
-          #pragma pack(1)
-
-          typedef enum _GET_FILEEX_INFO_LEVELS {
-            GetFileExInfoStandard,
-            GetFileExMaxInfoLevel 
-          } GET_FILEEX_INFO_LEVELS, *PGET_FILEEX_INFO_LEVELS;
-
-          typedef struct _FILETIME {
-            uint32_t dwLowDateTime;
-            uint32_t dwHighDateTime;
-          } FILETIME, *PFILETIME;
-
-          typedef struct _WIN32_FILE_ATTRIBUTE_DATA {
-            uint32_t dwFileAttributes;
-            FILETIME ftCreationTime;
-            FILETIME ftLastAccessTime;
-            FILETIME ftLastWriteTime;
-            uint32_t nFileSizeHigh;
-            uint32_t nFileSizeLow;
-          } WIN32_FILE_ATTRIBUTE_DATA, *PWIN32_FILE_ATTRIBUTE_DATA;
-
-          #pragma pack(pop)
-
-
-          uint32_t __stdcall GetFileAttributesA(const char *path);
-          uint32_t __stdcall GetLastError();
-          uint32_t __stdcall GetFileAttributesExA(const char *lpFileName, GET_FILEEX_INFO_LEVELS fInfoLevelId, void* lpFileInformation);
-          uint32_t __stdcall GetTempPathA(uint32_t n, char *buf);
-          uint32_t __stdcall CopyFileA(const char *src, const char *dst, uint32_t bool_flag);
-       ]]
-      local C = ffi.C
-      GetFileAttributes     = ffi.C.GetFileAttributesA
-      GetLastError          = ffi.C.GetLastError
-      CopyFile = function(from, src, f)
-        local res = 1 == C.CopyFileA(from, src, f and 1 or 0)
-        if not res then return nil, GetLastError() end
-        return res
-      end
-      local WIN32_FILE_ATTRIBUTE_DATA = ffi.typeof('WIN32_FILE_ATTRIBUTE_DATA')
-      GetFileAttributesEx = function (P)
-        local fileInfo = WIN32_FILE_ATTRIBUTE_DATA()
-        local ret = C.GetFileAttributesExA(P, ffi.C.GetFileExInfoStandard, fileInfo)
-        if ret == 0 then return nil, C.GetLastError() end
-        return {
-          dwFileAttributes = fileInfo.dwFileAttributes;
-          ftCreationTime   = {fileInfo.ftCreationTime.dwLowDateTime,   fileInfo.ftCreationTime.dwHighDateTime};
-          ftLastAccessTime = {fileInfo.ftLastAccessTime.dwLowDateTime, fileInfo.ftLastAccessTime.dwHighDateTime};
-          ftLastWriteTime  = {fileInfo.ftLastWriteTime.dwLowDateTime,  fileInfo.ftLastWriteTime.dwHighDateTime};
-          nFileSize        = {fileInfo.nFileSizeLow,                   fileInfo.nFileSizeHigh};
-        }
-      end
-      GetTempPath = function()
-        local n = MAX_PATH + 1
-        local buf = ffi.new("char[?]", n)
-        local ret = C.GetTempPathA(n, buf)
-        if ret == 0 then return nil, C.GetLastError() end
-        if ret > n then 
-          n = ret
-          buf = ffi.new("char[?]", n+1)
-          ret = C.GetTempPathA(n, buf)
-          if ret == 0 then return nil, C.GetLastError() end
-          if ret > n then ret = n end
-        end
-        return ffi.string(buf, ret)
-      end
-    end
-  end
-
-  if GetFileAttributesEx then
-    GetFileSize = function (P)
-      local info, err = GetFileAttributesEx(P)
-      if not info then return nil, err end
-      return (info.nFileSize[2] * 2^32) + info.nFileSize[1]
-    end
-  end
-
-  if USE_AFX   and not GetFileAttributes then -- afx
-    local afx = prequire "afx"
-    if afx then 
-      GetFileAttributes = afx.getfileattr
-      GetLastError      = afx.lastapierror
-      GetFileSize       = afx.filesize
-      GetTempPath       = afx.tmpdir
-    end
-  end
-
-end
-
---[[ note GetTempPath
-GetTempPath() might ignore the environment variables it's supposed to use (TEMP, TMP, ...) if they are more than 130 characters or so.
-http://blogs.msdn.com/b/larryosterman/archive/2010/10/19/because-if-you-do_2c00_-stuff-doesn_2700_t-work-the-way-you-intended_2e00_.aspx
-
----------------
- Limit of Buffer Size for GetTempPath
-[Note - this behavior does not occur with the latest versions of the OS as of Vista SP1/Windows Server 2008. If anyone has more information about when this condition occurs, please update this content.]
-
-[Note - this post has been edited based on, and extended by, information in the following post]
-
-Apparently due to the method used by GetTempPathA to translate ANSI strings to UNICODE, this function itself cannot be told that the buffer is greater than 32766 in narrow convention. Attempting to pass a larger value in nBufferLength will result in a failed RtlHeapFree call in ntdll.dll and subsequently cause your application to call DbgBreakPoint in debug compiles and simple close without warning in release compiles.
-
-Example:
-
-// Allocate a 32Ki character buffer, enough to hold even native NT paths.
-LPTSTR tempPath = new TCHAR[32767];
-::GetTempPath(32767, tempPath);    // Will crash in RtlHeapFree
-----------------
---]]
-
-if GetFileAttributes then
-  function PATH:fileattrib(P, ...)
+if fs.flags then
+  function PATH:flags(P, ...)
     assert_system(self)
-
     P = self:fullpath(P)
-    if self.IS_WINDOWS then
-      if #P <= 3 and P:sub(2,2) == ':' then -- c: => c:\ or c:\ => c:\
-        P = self:ensure_dir_end(P) 
-      else -- c:\temp\ => c:\temp
-        P = self:remove_dir_end(P) 
-      end
-    end
-
-    return GetFileAttributes(P, ...)
+    return fs.flags(P, ...)
   end
 end
 
-function PATH:user_home()
-  if IS_WINDOWS then -- system
-    return os.getenv('USERPROFILE') or PATH:join(os.getenv('HOMEDRIVE'), os.getenv('HOMEPATH'))
-  end
-  return os.getenv('HOME')
-end
-
-function PATH:tmpdir_()
-  if PATH.IS_WINDOWS then
-    for _, p in ipairs{'TEMP', 'TMP'} do
-      dir = os.getenv(p)
-      if dir and dir ~= '' then
-        break
-      end
-    end
-    return PATH:remove_dir_end(dir)
-  end
-  return PATH:dirname(os.tmpname())
-end
-PATH.tmpdir = PATH.tmpdir_
-if GetTempPath then
-  function PATH:tmpdir()
-    local dir = GetTempPath()
-    if dir then return PATH:remove_dir_end(dir) end
-    return self:tmpdir_()
-  end
+function PATH:tmpdir()
+  assert_system(self)
+  return self:remove_dir_end(fs.tmpdir())
 end
 
 function PATH:tmpname()
@@ -398,29 +217,12 @@ function PATH:tmpname()
   return P
 end
 
-local function file_size(P)
-  local f, err = io.open(P, 'rb')
-  if not f then return nil, err end
-  local size, err = f:seek('end')
-  f:close()
-  if not size then return nil, err end
-  return size
+function PATH:size(P)
+  assert_system(self)
+  return fs.size(P)
 end
-
-if GetFileSize then
-  function PATH:size(P)
-    local size, err = GetFileSize(P)
-    if size then return size end
-    return file_size(P)
-  end
-end
-
-local lfs  = prequire "lfs"
-if lfs then
 
 function PATH:fullpath(P)
-  assert_system(self)
-
   if not self:isfullpath(P) then 
     P = self:normolize_sep(P)
     local ch1, ch2 = P:sub(1,1), P:sub(2,2)
@@ -439,45 +241,57 @@ end
 
 function PATH:attrib(P, ...)
   assert_system(self)
-
-  P = self:fullpath(P)
-  if self.IS_WINDOWS then
-    if #P <= 3 and P:sub(2,2) == ':' then -- c: => c:\ or c:\ => c:\
-      P = self:ensure_dir_end(P) 
-    else -- c:\temp\ => c:\temp
-      P = self:remove_dir_end(P) 
-    end
-  end
-
-  return lfs.attributes(P, ...)
+  return fs.attributes(P, ...)
 end
 
 function PATH:exists(P)
-  return self:attrib(P,'mode') ~= nil and P
+  assert_system(self)
+  return fs.exists(self:fullpath(P))
 end
 
 function PATH:isdir(P)
-  return self:attrib(P,'mode') == 'directory' and P
+  assert_system(self)
+  return fs.isdir(self:fullpath(P))
 end
 
 function PATH:isfile(P)
-  return self:attrib(P,'mode') == 'file' and P
+  assert_system(self)
+  return fs.isfile(self:fullpath(P))
 end
 
 function PATH:islink(P)
-  return self:attrib(P,'mode') == 'link' and P
+  assert_system(self)
+  return fs.islink(self:fullpath(P))
 end
 
 function PATH:ctime(P)
-  return self:attrib(P,'change')
+  assert_system(self)
+  return fs.ctime(self:fullpath(P))
 end
 
 function PATH:mtime(P)
-  return self:attrib(P,'modification')
+  assert_system(self)
+  return fs.mtime(self:fullpath(P))
 end
 
 function PATH:atime(P)
-  return self:attrib(P,'access')
+  assert_system(self)
+  return fs.atime(self:fullpath(P))
+end
+
+function PATH:touch(P, ...)
+  assert_system(self)
+  return fs.touch(self:fullpath(P), ...)
+end
+
+function PATH:currentdir()
+  assert_system(self)
+  return self:normolize(fs.currentdir())
+end
+
+function PATH:chdir(P)
+  assert_system(self)
+  return fs.chdir(self:fullpath(P))
 end
 
 local date = prequire "date"
@@ -500,7 +314,7 @@ end
 function PATH:mkdir(P)
   assert_system(self)
   local P = self:fullpath(P)
-  if self:exists(P) then return self:isdir(P) and P end
+  if self:exists(P) then return self:isdir(P) end
   local p = ''
   P = self:ensure_dir_end(P)
   for str in string.gmatch(P, '.-' .. self.DIR_SEP) do
@@ -510,7 +324,7 @@ function PATH:mkdir(P)
         return nil, 'can not create ' .. p
       end
     else
-      local ok, err = lfs.mkdir(self:remove_dir_end(p))
+      local ok, err = fs.mkdir(self:remove_dir_end(p))
       if not ok then return nil, err .. ' ' .. p end
     end
   end
@@ -520,41 +334,7 @@ end
 
 function PATH:rmdir(P)
   assert_system(self)
-  P = self:fullpath(P)
-  return lfs.rmdir(P)
-end
-
-function PATH:remove_impl_batch(base, mask, opt)
-  if opt.recurse then
-    self:each(self:join(base, "*"), function(file)
-      self:remove_impl_batch(file, mask, opt)
-    end, {skipfiles=true})
-  end
-
-  local t = {}
-  local recurse = opt.recurse
-  self:each(self:join(base, mask), function(file) table.insert(t, file) end, opt)
-  opt.recurse = recurse
-
-  --- @todo handle errors
-  for _, file in ipairs(t) do self:remove_impl(file) end
-  return true
-end
-
-function PATH:remove_impl(P)
-  if self:isdir(P) then return self:rmdir(P) end
-  return os.remove((self:fullpath(P)))
-end
-
-function PATH:remove(P, opt)
-  assert_system(self)
-  local P = self:fullpath(P)
-  local dir, name = self:splitpath(P)
-  if (opt and opt.recurse) or name:find("[*?]") then -- batch mode
-    if not self.each then return nil, "not supported" end
-    return self:remove_impl_batch(dir, name, opt)
-  end
-  return self:remove_impl(P)
+  return fs.rmdir(self:fullpath(P))
 end
 
 function PATH:rename(from,to,force)
@@ -566,104 +346,100 @@ function PATH:rename(from,to,force)
   return os.rename(from, to)
 end
 
-function PATH:touch(P, ...)
-  assert_system(self)
-  P = self:fullpath(P)
-  return lfs.touch(P, ...)
+function each_impl(opt)
+  opt.file = PATH:fullpath(opt.file)
+  return fs.each_impl(opt)
 end
 
-function PATH:currentdir()
-  return self:normolize(lfs.currentdir())
-end
-
-function PATH:chdir(P)
-  P = self:fullpath(P)
-  return lfs.chdir(P)
-end
-
-if not PATH.size then
-  function PATH:size(P)
-    return self:attrib(P, 'size')
-  end
-end
-
-local findfile_impl = require "path.lfs.find".findfile_t
-local findfile = require "path.findfile".load(findfile_impl)
+local each = require "path.findfile".load(function(opt)
+  opt.file = PATH:fullpath(opt.file)
+  return fs.each_impl(opt)
+end)
 
 function PATH:each(...)
   assert_system(self)
-  return findfile(...)
+  return each(...)
 end
 
-else
+local function copy_impl_batch(fs, src_dir, mask, dst_dir, opt)
+  if not opt then opt = {} end
 
-if not PATH.size then
-  function PATH:size(P)
-    return file_size(P)
-  end
+  local overwrite = opt.overwrite
+  local accept    = opt.accept
+  local onerror   = opt.error
+  local chlen     = #fs.DIR_SEP
+  local count     = 0
+
+  local ok, err = fs.each_impl{file = src_dir .. fs.DIR_SEP .. mask,
+    delay = opt.delay; recurse = opt.recurse; param = "pnm";
+    skipdirs = opt.skipdirs; skipfiles = opt.skipfiles;
+    callback = function(path, name, mode)
+      local rel = string.sub(path, #src_dir + chlen + 1)
+      if #rel > 0 then rel = rel .. fs.DIR_SEP .. name else rel = name end
+      local dst = dst_dir .. fs.DIR_SEP .. rel
+      local src = path .. fs.DIR_SEP .. name
+
+      if accept then
+        local ok = accept(src, dst, opt)
+        if not ok then return end
+      end
+
+      local ok, err
+      if mode == "directory" then ok, err = fs.mkdir(dst)
+      else ok, err = fs.copy(src, dst, not overwrite) end
+
+      if not ok and onerror then
+        if not onerror(err, src, dst, opt) then -- break
+          return true
+        end
+      else
+        count = count + 1
+      end
+    end;
+  }
+  if ok or err then return ok, err end
+  return count
 end
 
-function PATH:isfile(P)
-  local f, err = io.open(P, 'rb')
-  if f then f:close() end
-  return not not f
+local function remove_impl_batch(fs, src_dir, mask, opt)
+  if not opt then opt = {} end
+
+  local overwrite = opt.overwrite
+  local accept    = opt.accept
+  local onerror   = opt.error
+  local chlen     = #fs.DIR_SEP
+  local count     = 0
+  local delay     = (opt.delay == nil) and true or opt.delay
+
+  local ok, err = fs.each_impl{file = src_dir .. fs.DIR_SEP .. mask,
+    delay = delay; recurse = opt.recurse; reverse = true; param = "fm";
+    skipdirs = opt.skipdirs; skipfiles = opt.skipfiles;
+    callback = function(src, mode)
+      if accept then
+        local ok = accept(src, opt)
+        if not ok then return end
+      end
+
+      local ok, err
+      if mode == "directory" then ok, err = fs.rmdir(src)
+      else ok, err = fs.remove(src) end
+
+      if not ok and onerror then
+        if not onerror(err, src, opt) then -- break
+          return true
+        end
+      else
+        count = count + 1
+      end
+    end;
+  }
+  if ok or err then return ok, err end
+  return count
 end
 
-function PATH:exists(P)
-  return self:isfile(P)
-end
-
-end
-
-if not CopyFile then
-
-CopyFile = function(from, to, failIfExists)
-  local f, err = io.open(from, 'rb')
-  if not f then return nil, err end
-
-  if failIfExists then
-    local t, err = io.open(to,   'rb' )
-    if t then 
-      f:close()
-      t:close()
-      return nil, "file alredy exists"
-    end
-  end
-
-  local t, err = io.open(to, 'w+b')
-  if not t then
-    f:close()
-    return nil, err
-  end
-
-  local CHUNK_SIZE = 4096
-  while(true)do
-    local chunk = f:read(CHUNK_SIZE)
-    if not chunk then break end
-    local ok, err = t:write(chunk)
-    if not ok then
-      t:close()
-      f:close()
-      return nil, err or "can not write"
-    end
-  end
-  t:close()
-  f:close()
-  return true
-end
-
-end
-
-function PATH:copy_impl_batch(src_dir, src_name, dst_dir, opt)
-  local overwrite = opt and opt.overwrite
-  self:each(self:join(src_dir, src_name), function(path)
-    local rel = path:sub(#src_dir + 2)
-    local dst = self:join(dst_dir, rel)
-    self:mkdir(self:dirname(dst))
-    local ok, err = CopyFile(path, dst, not overwrite)
-    --- @todo check error
-  end, {recurse = opt and opt.recurse})
-  return true
+function PATH:remove_impl(P)
+  if self:isdir(P) then return fs.rmdir(P) end
+  return fs.remove(P)
 end
 
 function PATH:copy(from, to, opt)
@@ -675,12 +451,24 @@ function PATH:copy(from, to, opt)
 
   local src_dir, src_name = self:splitpath(from)
   if recurse or src_name:find("[*?]") then -- batch mode
-    if not self.each then return nil, "not supported" end
-    return self:copy_impl_batch(src_dir, src_name, to, opt)
+    self:mkdir(to)
+    return copy_impl_batch(fs, src_dir, src_name, to, opt)
   end
   if self.mkdir then self:mkdir(self:dirname(to)) end
-  return CopyFile(from, to, not overwrite)
+  return fs.copy(from, to, not not overwrite)
 end
+
+function PATH:remove(P, opt)
+  assert_system(self)
+  local P = self:fullpath(P)
+  local dir, name = self:splitpath(P)
+  if (opt and opt.recurse) or name:find("[*?]") then -- batch mode
+    return remove_impl_batch(fs, dir, name, opt)
+  end
+  return self:remove_impl(P)
+end
+
+end -- fs 
 
 local function make_module()
   local M = require "path.module"

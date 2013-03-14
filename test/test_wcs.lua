@@ -2,8 +2,8 @@ local lunit = require "lunit"
 local tutil = require "utils"
 local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
 
-local path  = require "path"
-if not path.IS_WINDOWS then
+local IS_WINDOWS = package.config:sub(1,1) == '\\'
+if not IS_WINDOWS then
   local _ENV = TEST_CASE('WCS')
   test = skip"windows only tests"
   return lunit.run()
@@ -11,6 +11,20 @@ end
 
 local function self_test(wcs)
   local assert = lunit.assert
+  local assert_nil = lunit.assert_nil
+  local assert_equal = lunit.assert_equal
+
+  -- assert_nil(wcs.wcstoansi(nil))
+  -- assert_nil(wcs.ansitowcs(nil))
+
+  assert_equal("", wcs.wcstoansi(""))
+  assert_equal("", wcs.ansitowcs(""))
+
+  local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
+  local res = "DemonicAngel"
+  assert(wcs.wcstooem(str) == res)
+
+
 
   local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
   local res = "DemonicAngel"

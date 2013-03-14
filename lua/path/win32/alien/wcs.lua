@@ -98,14 +98,16 @@ local function WideCharToMultiByte(src, cp)
   return dst,0
 end
 
-local function LUA_M2W(...)
-  local dst, dstlen = MultiByteToWideChar(...)
+local function LUA_M2W(src, ...)
+  if not src or #src == 0 then return src end
+  local dst, dstlen = MultiByteToWideChar(src, ...)
   if not dst then return nil, dstlen end
   return dst:tostring(dstlen * WCHAR_SIZE)
 end
 
-local function LUA_W2M(...)
-  local dst, dstlen = WideCharToMultiByte(...)
+local function LUA_W2M(src, ...)
+  if not src or #src == 0 then return src end
+  local dst, dstlen = WideCharToMultiByte(src, ...)
   if not dst then return nil, dstlen end
   return dst:tostring(dstlen)
 end

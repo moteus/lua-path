@@ -2,8 +2,8 @@ local lunit = require "lunit"
 local tutil = require "utils"
 local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
 
-local path       = require "path"
-local ISW = path.IS_WINDOWS
+local path = require "path"
+local ISW  = path.IS_WINDOWS
 
 local function prequire(...)
   local ok, mod = pcall(require, ...)
@@ -58,7 +58,10 @@ function setup()
   mkfile(path.join(cwd, '1', '2', '3', 'file.dat'), '12345')
 
   local findfile_t = assert(opt.get_findfile())
-  path_each = require"path.findfile".load(findfile_t)
+  path_each = require "path.findfile".load(function(opt)
+    opt.file = path.fullpath(opt.file)
+    return findfile_t(opt)
+  end)
 
   files = {
     [ up(path.join(cwd, '1', '2', '3', 'test.dat')) ] = true;
@@ -82,14 +85,15 @@ function test_attr()
   for P in pairs(files)do assert(path.isfile(P)) end
   for P in pairs(files)do assert_equal(5, path.size(P)) end
 
-  local ts = os.time()
+  local ts = os.time() + 100
   path_each("./1/*", function(f)
     assert(path.isfile(f))
     assert(path.touch(f, ts))
   end, {skipdirs=true, recurse=true})
 
   path_each("./1/*", "ft", function(f,mt)
-    assert_equal(ts, mt)
+    local delta = math.abs(ts - mt)
+    assert(delta <= 2)
   end, {skipdirs=true, recurse=true})
 end
 
@@ -173,10 +177,10 @@ end
 
 end
 
-local _ENV = TEST_CASE('each lfs1')
+local _ENV = TEST_CASE('each lfs')
 if not prequire"lfs" then test = skip"lfs module not found" else
   make_test(_M or _ENV, {
-    get_findfile = function() return require "path.lfs.find".findfile_t end;
+    get_findfile = function() return require "path.lfs.fs".each_impl end;
   })
 end
 
@@ -185,7 +189,7 @@ if not ISW then test = skip"ffi support only on Windwos"
 elseif not prequire"ffi" then test = skip"ffi module not found" else
   make_test(_M or _ENV, {
     get_findfile = function() 
-      return require "path.win32.find".load("ffi").A.findfile_t
+      return require "path.win32.fs".load("ffi", "A").each_impl
     end;
   })
 end
@@ -195,7 +199,7 @@ if not ISW then test = skip"alien support only on Windwos"
 elseif not prequire"alien" then test = skip"alien module not found" else
   make_test(_M or _ENV, {
     get_findfile = function() 
-      return require "path.win32.find".load("alien").A.findfile_t
+      return require "path.win32.fs".load("alien", "A").each_impl
     end;
   })
 end
