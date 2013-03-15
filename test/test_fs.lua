@@ -131,6 +131,18 @@ function test_remove()
   assert_nil(fs.remove(J(base, _T"test.txt")))
 end
 
+function test_remove_dir()
+  assert_nil(fs.remove(base))
+  assert_equal(base, fs.isdir(base))
+end
+
+function test_rmdir()
+  assert_nil(fs.rmdir(base))
+  assert_equal(base, fs.isdir(base))
+  assert_true(fs.remove(J(base, _T"test.txt")))
+  assert_true(fs.rmdir(base))
+end
+
 function test_size()
   assert_equal(#data, fs.size(J(base, _T"test.txt")))
 end
@@ -157,62 +169,111 @@ function test_touch_non_exists()
   assert_false(fs.exists(SRC))
 end
 
-function test_copy()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
-  assert_true(fs.copy(SRC, DST))
-  assert_equal(DST, fs.isfile(DST))
-  assert_equal(data, read_file(DST))
 end
 
-function test_copy_force_fail()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
-  assert(mkfile(DST))
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.copy(SRC, DST))
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.copy(SRC, DST), false)
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.copy(SRC, DST), nil)
-  assert_equal(0,fs.size(DST))
+local _ENV = TEST_CASE(name .. ": copy/move") do
+
+local cwd, base
+local data  = "123\r\n456\n789"
+local rdata = "789\r\n123\n456"
+
+function teardown()
+  fs.chdir(cwd)
+  fs.remove(J(base, _T"test.txt"))
+  fs.remove(J(base, _T"test2.txt"))
+  fs.rmdir(base)
+
+  fs.remove(J(base, _T'from.dat'))
+  fs.remove(J(base, _T'to.dat'  ))
+  fs.remove(J(base, _T'to.txt'  ))
+  fs.rmdir (J(base, _T'to'      ))
+  fs.rmdir (base)
 end
 
-function test_copy_force_pass()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
-  assert(mkfile(DST))
-  assert_equal(0,fs.size(DST))
-  assert_true(fs.copy(SRC, DST, true))
-  assert_equal(data, read_file(DST))
+function setup()
+  cwd = fs.currentdir()
+  base = J(cwd, _T"tmp")
+
+  teardown()
+  assert_true(fs.mkdir(base))
+  assert_true(fs.mkdir(J(base, _T'to')))
+  assert(mkfile(J(base, _T'from.dat'), data ))
+  assert(mkfile(J(base, _T'to.dat'  ), rdata))
 end
 
-function test_move()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
+local function test_fail(operation)
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to.dat')
+  assert_nil(operation(SRC, DST))
+  assert_equal(data,  read_file(SRC))
+  assert_equal(rdata, read_file(DST))
+
+  assert_nil(operation(SRC, DST, false))
+  assert_equal(data,  read_file(SRC))
+  assert_equal(rdata, read_file(DST))
+
+  assert_nil(operation(SRC, DST, nil))
+  assert_equal(data,  read_file(SRC))
+  assert_equal(rdata, read_file(DST))
+
+  SRC, DST = J(base, _T'from.dat'), J(base, _T'to')
+  assert_nil(operation(SRC, DST))
+  assert_equal(data,  read_file(SRC))
+  assert_equal(DST,   fs.isdir(DST) )
+
+  SRC, DST = J(base, _T'unknown.txt'), J(base, _T'to.dat')
+  assert_nil(operation(SRC, DST, true))
+  assert_false(fs.exists(SRC))
+  assert_equal(rdata, read_file(DST))
+end
+
+function test_move_fail()
+  test_fail(fs.move)
+end
+
+function test_copy_fail()
+  test_fail(fs.copy)
+end
+
+function test_move_pass()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to.txt')
   assert_true(fs.move(SRC, DST))
   assert_false(fs.exists(SRC))
   assert_equal(data, read_file(DST))
 end
 
-function test_move_force_fail()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
-  assert(mkfile(DST))
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.move(SRC, DST))
-  assert_equal(SRC, fs.exists(SRC))
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.move(SRC, DST), false)
-  assert_equal(SRC, fs.exists(SRC))
-  assert_equal(0,fs.size(DST))
-  assert_nil(fs.move(SRC, DST), nil)
-  assert_equal(SRC, fs.exists(SRC))
-  assert_equal(0,fs.size(DST))
+function test_copy_pass()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to.txt')
+  assert_true(fs.copy(SRC, DST))
+  assert_equal(data, read_file(SRC))
+  assert_equal(data, read_file(DST))
 end
 
-function test_move_force_pass()
-  local SRC, DST = J(base, _T"test.txt"), J(base, _T"test2.txt")
-  assert(mkfile(DST))
-  assert_equal(0,fs.size(DST))
-  assert_true(fs.move(SRC, DST, true))
+function test_move_force_file()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to.dat')
+  assert_true( fs.move(SRC, DST, true ))
   assert_false(fs.exists(SRC))
   assert_equal(data, read_file(DST))
+end
+
+function test_copy_force_file()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to.dat')
+  assert_true( fs.copy(SRC, DST, true ))
+  assert_equal(data, read_file(SRC))
+  assert_equal(data, read_file(DST))
+end
+
+function test_move_force_dir()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to')
+  assert_nil( fs.move(SRC, DST, true ))
+  assert_equal(data, read_file(SRC))
+  assert_equal(DST, fs.isdir(DST))
+end
+
+function test_copy_force_dir()
+  local SRC, DST = J(base, _T'from.dat'), J(base, _T'to')
+  assert_nil( fs.copy(SRC, DST, true ))
+  assert_equal(data, read_file(SRC))
+  assert_equal(DST, fs.isdir(DST))
 end
 
 end

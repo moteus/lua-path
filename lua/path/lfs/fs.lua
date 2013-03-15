@@ -75,7 +75,7 @@ function _M.copy(src, dst, force)
 end
 
 function _M.move(src, dst, flags)
-  if _M.exists(dst) and flags then
+  if flags and _M.exists(dst) and _M.exists(src) then
     local ok, err = _M.remove(dst)
     if not ok then return nil, err end
   end
