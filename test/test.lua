@@ -445,11 +445,29 @@ function test_copy_fail()
   assert_equal("54321", read_file(path.join(cwd, '1', 'a2.txt')))
 end
 
+function test_copy_fail_bool()
+  assert_nil( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '1', 'a2.txt'),
+    false
+  ))
+  assert_equal("54321", read_file(path.join(cwd, '1', 'a2.txt')))
+end
+
 function test_copy_overwrite()
   assert( path.copy(
     path.join(cwd, '1', 'a1.txt'),
     path.join(cwd, '1', 'a2.txt'),
     {overwrite = true}
+  ))
+  assert_equal("12345", read_file(path.join(cwd, '1', 'a2.txt')))
+end
+
+function test_copy_overwrite_bool()
+  assert( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '1', 'a2.txt'),
+    true
   ))
   assert_equal("12345", read_file(path.join(cwd, '1', 'a2.txt')))
 end

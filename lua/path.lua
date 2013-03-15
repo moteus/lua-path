@@ -337,13 +337,11 @@ function PATH:rmdir(P)
   return fs.rmdir(self:fullpath(P))
 end
 
-function PATH:rename(from,to,force)
-  if not self:isfile(from) then return nil, "file not found" end
-  if self:exists(to) and force then
-    local ok, err = self:remove(to)
-    if not ok then return nil, err end
-  end
-  return os.rename(from, to)
+function PATH:rename(from, to, force)
+  assert_system(self)
+  from = self:fullpath(from)
+  to   = self:fullpath(to)
+  return fs.move(from, to, force)
 end
 
 function each_impl(opt)
@@ -445,6 +443,8 @@ end
 function PATH:copy(from, to, opt)
   from = self:fullpath(from)
   to   = self:fullpath(to)
+
+  if type(opt) == "boolean" then opt = {overwrite = opt} end
 
   local overwrite = opt and opt.overwrite
   local recurse   = opt and opt.recurse
