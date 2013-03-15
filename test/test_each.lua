@@ -204,14 +204,4 @@ elseif not prequire"alien" then test = skip"alien module not found" else
   })
 end
 
-local _ENV = TEST_CASE('each afx')
-if not ISW then test = skip"afx support only on Windwos" 
-elseif not prequire"afx" then test = skip"afx module not found" else
-  make_test(_M or _ENV, {
-    get_findfile = function() 
-      return require "afx".findfile
-    end;
-  })
-end
-
 if not LUNIT_RUN then lunit.run() end
