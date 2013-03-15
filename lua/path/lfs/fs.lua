@@ -77,6 +77,8 @@ end
 function _M.move(src, dst, flags)
   if flags and _M.exists(dst) and _M.exists(src) then
     local ok, err = _M.remove(dst)
+    -- do we have to remove dir?
+    -- if not ok then ok, err = _M.rmdir(dst) end
     if not ok then return nil, err end
   end
   return os.rename(src, dst)

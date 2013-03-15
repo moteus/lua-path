@@ -181,12 +181,18 @@ function teardown()
   fs.chdir(cwd)
   fs.remove(J(base, _T"test.txt"))
   fs.remove(J(base, _T"test2.txt"))
+  fs.remove(J(base, _T'nonempty', _T'tmp.dat'))
+  fs.remove(J(base, _T'tmp2',     _T'tmp.dat'))
   fs.rmdir(base)
 
   fs.remove(J(base, _T'from.dat'))
   fs.remove(J(base, _T'to.dat'  ))
   fs.remove(J(base, _T'to.txt'  ))
+  fs.remove(J(base, _T'to'      ))
   fs.rmdir (J(base, _T'to'      ))
+  fs.rmdir (J(base, _T'tmp'     ))
+  fs.rmdir (J(base, _T'tmp2'    ))
+  fs.rmdir (J(base, _T'nonempty'))
   fs.rmdir (base)
 end
 
@@ -197,8 +203,12 @@ function setup()
   teardown()
   assert_true(fs.mkdir(base))
   assert_true(fs.mkdir(J(base, _T'to')))
+  assert_true(fs.mkdir(J(base, _T'tmp')))
+  assert_true(fs.mkdir(J(base, _T'nonempty')))
+
   assert(mkfile(J(base, _T'from.dat'), data ))
   assert(mkfile(J(base, _T'to.dat'  ), rdata))
+  assert(mkfile(J(base, _T'nonempty', _T'tmp.dat'), data ))
 end
 
 local function test_fail(operation)
@@ -262,10 +272,43 @@ function test_copy_force_file()
   assert_equal(data, read_file(DST))
 end
 
+function test_move_empty_dir()
+  local SRC, DST = J(base, _T'tmp'), J(base, _T'tmp2')
+  assert_true( fs.move(SRC, DST) )
+  assert_false(fs.exists(SRC))
+  assert_equal(DST, fs.isdir(DST))
+end
+
+function test_move_nonempty_dir()
+  local SRC, DST = J(base, _T'nonempty'), J(base, _T'tmp2')
+  assert_true( fs.move(SRC, DST) )
+  assert_false(fs.exists(SRC))
+  assert_equal(DST, fs.isdir(DST))
+end
+
+function test_copy_empty_dir()
+  local SRC, DST = J(base, _T'tmp'), J(base, _T'tmp2')
+  assert_nil  (fs.copy(SRC, DST))
+  assert_false(fs.exists(DST))
+end
+
+function test_copy_nonempty_dir()
+  local SRC, DST = J(base, _T'nonempty'), J(base, _T'tmp2')
+  assert_nil  (fs.copy(SRC, DST))
+  assert_false(fs.exists(DST))
+end
+
 function test_move_force_dir()
   local SRC, DST = J(base, _T'from.dat'), J(base, _T'to')
-  assert_nil( fs.move(SRC, DST, true ))
+  assert_nil( fs.move(SRC, DST, true ) )
   assert_equal(data, read_file(SRC))
+  assert_equal(DST, fs.isdir(DST))
+end
+
+function test_move_force_dir2()
+  local SRC, DST = J(base, _T'tmp'), J(base, _T'to')
+  assert_nil( fs.move(SRC, DST, true ))
+  assert_equal(SRC, fs.isdir(SRC))
   assert_equal(DST, fs.isdir(DST))
 end
 
