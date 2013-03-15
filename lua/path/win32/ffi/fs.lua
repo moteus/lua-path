@@ -43,6 +43,7 @@ ffi.cdef[[
   DWORD  __stdcall FormatMessageW(DWORD dwFlags, void* lpSource, DWORD dwMessageId, DWORD dwLanguageId, LPVOID lpBuffer, DWORD nSize, void *Arguments);
   HLOCAL __stdcall LocalFree( HLOCAL hMem );
 
+  BOOL   __stdcall DeviceIoControl(HANDLE hDevice, DWORD dwIoControlCode, void* lpInBuffer, DWORD nInBufferSize, void* lpOutBuffer, DWORD nOutBufferSize, DWORD* lpBytesReturned, void* lpOverlapped);
 ]]
 
 local C = ffi.C
@@ -232,7 +233,6 @@ local function SetFileTime(h, c, a, m)
   return nil, C.GetLastError()
 end
 
-
 local FORMAT_MESSAGE_ALLOCATE_BUFFER = 0x00000100
 local FORMAT_MESSAGE_IGNORE_INSERTS  = 0x00000200
 local FORMAT_MESSAGE_FROM_STRING     = 0x00000400
@@ -260,6 +260,60 @@ local function ErrorMessage(u, dwErr, lang)
   return str;
 end
 
+local function DeviceIoControl(h, code, inBuffer, inBufferSize, outBuffer, outBufferSize)
+  if inBuffer  == nil then inBuffer,  inBufferSize  = NULL, 0 end
+  if outBuffer == nil then outBuffer, outBufferSize = NULL, 0 end
+  local dwTmp = ffi.new("DWORD[1]", 0)
+  local ret   = C.DeviceIoControl(h, code,
+    inBuffer, inBufferSize, outBuffer, outBufferSize,
+    dwTmp, NULL
+  )
+  if ret == 0 then
+    local err = C.GetLastError()
+    return nil, err
+  end
+
+  return ret, dwTmp[0]
+end
+
+local FILE_FLAG_NO_BUFFERING           = 0x20000000
+local FILE_ATTRIBUTE_NORMAL            = 0x00000080
+local FILE_SHARE_READ                  = 0x00000001
+local FILE_SHARE_WRITE                 = 0x00000002
+local OPEN_EXISTING                    = 3
+local IOCTL_STORAGE_GET_DEVICE_NUMBER  = 0x2D1080
+
+local function DiskNumber(u, P)
+  local p
+  if u then p = "\\\0\\\0.\0\\\0" .. P .. "\0"
+  else p = "\\\\.\\" .. P end
+
+  -- Open partition
+  local hPart, err = CreateFile(u, p, 0,
+    FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL + FILE_FLAG_NO_BUFFERING, NULL
+  );
+
+  if not hPart then return nil, err end
+
+  local Info = CTYPES.STORAGE_DEVICE_NUMBER();
+  local Info_size = ffi.sizeof(CTYPES.STORAGE_DEVICE_NUMBER)
+
+  local ret, dwTmp = DeviceIoControl(hPart, IOCTL_STORAGE_GET_DEVICE_NUMBER, 
+    NULL, 0, Info, Info_size
+  )
+  if not ret then err = dwTmp end
+  if dwTmp ~= Info_size then ret, err = nil, GetLastError() end
+
+  CloseHandle(hPart)
+  if not ret then return nil, err end
+  return {
+    Info.DeviceType,
+    Info.DeviceNumber,
+    Info.PartitionNumber,
+  }
+end
+
 return {
   A = {
     GetCurrentDirectory   = function(...) return GetCurrentDirectory(false, ...) end;
@@ -275,9 +329,11 @@ return {
     CreateFile            = function(...) return CreateFile         (false, ...) end;
     MoveFileEx            = function(...) return MoveFileEx         (false, ...) end;
     ErrorMessage          = function(...) return ErrorMessage       (false, ...) end;
+    DiskNumber            = function(...) return DiskNumber         (false, ...) end;
     FindClose             = FindClose;
     CloseHandle           = CloseHandle;
     SetFileTime           = SetFileTime;
+    DeviceIoControl       = DeviceIoControl;
     WIN32_FIND_DATA2TABLE = CTYPE2LUA.WIN32_FIND_DATAA;
     DIR_SEP               = "\\";
     ANY_MASK              = "*";
@@ -296,12 +352,13 @@ return {
     CreateFile            = function(...) return CreateFile         (true, ...) end;
     MoveFileEx            = function(...) return MoveFileEx         (true, ...) end;
     ErrorMessage          = function(...) return ErrorMessage       (true, ...) end;
+    DiskNumber            = function(...) return DiskNumber         (true, ...) end;
     FindClose             = FindClose;
     CloseHandle           = CloseHandle;
     SetFileTime           = SetFileTime;
+    DeviceIoControl       = DeviceIoControl;
     WIN32_FIND_DATA2TABLE = CTYPE2LUA.WIN32_FIND_DATAW;
     DIR_SEP               = "\\\000";
     ANY_MASK              = "*\000";
   };
 }
-

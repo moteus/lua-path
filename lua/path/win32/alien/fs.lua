@@ -10,6 +10,8 @@ local FILETIME         = CTYPES.FILETIME
 local BOOL             = "uint"
 local INVALID_HANDLE   = types.INVALID_HANDLE
 local LPVOID           = "pointer"
+local LPDWORD          = "ref " .. DWORD
+
 local NULL             = nil
 local WIN32_FIND_DATAA = CTYPES.WIN32_FIND_DATAA
 local WIN32_FIND_DATAW = CTYPES.WIN32_FIND_DATAW
@@ -46,6 +48,7 @@ local SetFileTime_         = assert(kernel32.SetFileTime)
 local FormatMessageA       = assert(kernel32.FormatMessageA)
 local FormatMessageW       = assert(kernel32.FormatMessageW)
 local LocalFree            = assert(kernel32.LocalFree)
+local DeviceIoControl_     = assert(kernel32.DeviceIoControl)
 
 GetCurrentDirectoryA:types{abi="stdcall", ret = DWORD, DWORD, LPVOID}
 GetCurrentDirectoryW:types{abi="stdcall", ret = DWORD, DWORD, LPVOID}
@@ -95,6 +98,8 @@ FormatMessageW:types{abi="stdcall", ret = DWORD, DWORD, LPVOID, DWORD, DWORD, LP
 FormatMessageA:types{abi="stdcall", ret = DWORD, DWORD, LPVOID, DWORD, DWORD, LPVOID, DWORD, LPVOID};
 
 LocalFree:types{abi="stdcall", ret = LPVOID, LPVOID};
+
+DeviceIoControl_:types{abi="stdcall", ret = BOOL, HANDLE, DWORD, LPVOID, DWORD, LPVOID, DWORD, LPDWORD, LPVOID}
 
 local function GetCurrentDirectory(u)
   local n = (u and GetCurrentDirectoryW or GetCurrentDirectoryA)(0, NULL)
@@ -298,6 +303,58 @@ local function ErrorMessage(u, dwErr, lang)
   return str;
 end
 
+local function DeviceIoControl(h, code, inBuffer, inBufferSize, outBuffer, outBufferSize)
+  if inBuffer  == nil then inBuffer,  inBufferSize  = NULL, 0 end
+  if outBuffer == nil then outBuffer, outBufferSize = NULL, 0 end
+  local ret, dwTmp = DeviceIoControl_(h.value, code,
+    inBuffer, inBufferSize, outBuffer, outBufferSize,
+    0, NULL
+  )
+  if ret == 0 then
+    local err = GetLastError()
+    return nil, err
+  end
+  return ret, dwTmp
+end
+
+local FILE_FLAG_NO_BUFFERING           = 0x20000000
+local FILE_ATTRIBUTE_NORMAL            = 0x00000080
+local FILE_SHARE_READ                  = 0x00000001
+local FILE_SHARE_WRITE                 = 0x00000002
+local OPEN_EXISTING                    = 3
+local IOCTL_STORAGE_GET_DEVICE_NUMBER  = 0x2D1080
+
+local function DiskNumber(u, P)
+  local p
+  if u then p = "\\\0\\\0.\0\\\0" .. P .. "\0"
+  else p = "\\\\.\\" .. P end
+
+  -- Open partition
+  local hPart, err = CreateFile(u, p, 0,
+    FILE_SHARE_READ + FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+    FILE_ATTRIBUTE_NORMAL + FILE_FLAG_NO_BUFFERING, NULL
+  );
+
+  if not hPart then return nil, err end
+
+  local Info = CTYPES.STORAGE_DEVICE_NUMBER:new();
+  local Info_size = CTYPES.STORAGE_DEVICE_NUMBER.size_
+
+  local ret, dwTmp = DeviceIoControl(hPart, IOCTL_STORAGE_GET_DEVICE_NUMBER, 
+    NULL, 0, Info(), Info_size
+  )
+  if not ret then err = dwTmp end
+  if dwTmp ~= Info_size then ret, err = nil, GetLastError() end
+
+  CloseHandle(hPart)
+  if not ret then return nil, err end
+  return {
+    Info.DeviceType,
+    Info.DeviceNumber,
+    Info.PartitionNumber,
+  }
+end
+
 return {
   A = {
     GetCurrentDirectory   = function(...) return GetCurrentDirectory(false, ...) end;
@@ -313,9 +370,11 @@ return {
     CreateFile            = function(...) return CreateFile         (false, ...) end;
     MoveFileEx            = function(...) return MoveFileEx         (false, ...) end;
     ErrorMessage          = function(...) return ErrorMessage       (false, ...) end;
+    DiskNumber            = function(...) return DiskNumber         (false, ...) end;
     FindClose             = FindClose;
     CloseHandle           = CloseHandle;
     SetFileTime           = SetFileTime;
+    DeviceIoControl       = DeviceIoControl;
     WIN32_FIND_DATA2TABLE = CTYPE2LUA.WIN32_FIND_DATAA;
     DIR_SEP               = "\\";
     ANY_MASK              = "*";
@@ -334,12 +393,13 @@ return {
     CreateFile            = function(...) return CreateFile         (true, ...) end;
     MoveFileEx            = function(...) return MoveFileEx         (true, ...) end;
     ErrorMessage          = function(...) return ErrorMessage       (true, ...) end;
+    DiskNumber            = function(...) return DiskNumber         (true, ...) end;
     FindClose             = FindClose;
     CloseHandle           = CloseHandle;
     SetFileTime           = SetFileTime;
+    DeviceIoControl       = DeviceIoControl;
     WIN32_FIND_DATA2TABLE = CTYPE2LUA.WIN32_FIND_DATAW;
     DIR_SEP               = "\\\000";
     ANY_MASK              = "*\000";
   };
 }
-
