@@ -14,8 +14,8 @@ local function self_test(wcs)
   local assert_nil = lunit.assert_nil
   local assert_equal = lunit.assert_equal
 
-  -- assert_nil(wcs.wcstoansi(nil))
-  -- assert_nil(wcs.ansitowcs(nil))
+  assert_nil(wcs.wcstoansi(nil))
+  assert_nil(wcs.ansitowcs(nil))
 
   assert_equal("", wcs.wcstoansi(""))
   assert_equal("", wcs.ansitowcs(""))
@@ -107,17 +107,6 @@ if not prequire"alien" then test = skip"alien module not found" else
 local wcs
 
 function setup() wcs = require "path.win32.wcs".load("alien") end
-
-function test() self_test(wcs) end
-
-end
-
-local _ENV = TEST_CASE('WCS afx')
-if not prequire"afx" then test = skip"afx module not found" else 
-
-local wcs
-
-function setup() wcs = require "path.win32.wcs".load("afx") end
 
 function test() self_test(wcs) end
 

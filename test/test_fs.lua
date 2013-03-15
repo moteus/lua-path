@@ -2,22 +2,20 @@ local lunit = require "lunit"
 local tutil = require "utils"
 local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
 
-local DIR_SEP  = package.config:sub(1,1)
-local DIR_SEP_ = DIR_SEP
-local IS_WINDOWS = DIR_SEP == '\\'
-local fs
-local _T = function(str) return str end
-local _t = function(str) return str end
+local IS_WINDOWS = package.config:sub(1,1) == '\\'
+local fs, wcs, _T, _t
 
-function B(str)
+local function B(str)
   return (str:gsub(".", function(ch)
     return string.format("\\%.03d", ch:byte())
   end))
 end
 
-function Q(str)
+local function Q(str)
   return string.format("%q",str)
 end
+
+local function pass_thrue(str) return str end
 
 local function prequire(...)
   local ok, mod = pcall(require, ...)
@@ -47,7 +45,8 @@ end
 
 local function CREATE_TEST(name)
 
-local DIR_SEP, fs, _T, _t = DIR_SEP, fs, _T, _t
+local fs, _T, _t = fs, _T, _t
+local DIR_SEP = fs.DIR_SEP
 
 local function mkfile(P, data)
   local f, e = io.open(_t(P), "w+b")
@@ -637,30 +636,44 @@ end
 -------------------------------------------------------------------------------
 do -- create tests
 
-fs = require"path.win32.fs".load("alien", "A")
-CREATE_TEST("alienA")
+if not prequire"lfs" then 
+  local _ENV = TEST_CASE("lfs.fs")
+  test = skip"lfs module not found"
+else
+  _T, _t = pass_thrue,pass_thrue
+  fs = require"path.lfs.fs"
+  CREATE_TEST("lfs")
+end
 
-fs = require"path.win32.fs".load("ffi", "A")
-CREATE_TEST("ffiA")
+if IS_WINDOWS then
+  if not prequire"alien" then 
+    local _ENV = TEST_CASE("alien.fs")
+    test = skip"alien module not found"
+  else
+    _T, _t = pass_thrue,pass_thrue
+    fs = require"path.win32.fs".load("alien", "A")
+    CREATE_TEST("alienA")
 
-fs = require"path.lfs.fs"
-CREATE_TEST("lfs")
+    wcs = require"path.win32.wcs".load("alien")
+    _T, _t = wcs.ansitowcs, wcs.wcstoansi
+    fs  = require"path.win32.fs".load("alien", "W")
+    CREATE_TEST("alienW")
+  end
 
-local wcs
-fs  = require"path.win32.fs".load("alien", "W")
-wcs = require"path.win32.wcs".load("alien")
-_T = wcs.ansitowcs
-_t = wcs.wcstoansi
-DIR_SEP = _T(DIR_SEP_)
-CREATE_TEST("alienW")
+  if not prequire"ffi" then 
+    local _ENV = TEST_CASE("ffi.fs")
+    test = skip"ffi module not found"
+  else
+    _T, _t = pass_thrue,pass_thrue
+    fs = require"path.win32.fs".load("ffi", "A")
+    CREATE_TEST("ffiA")
 
-
-wcs = require"path.win32.wcs".load("ffi")
-fs = require"path.win32.fs".load("ffi", "W")
-_T = wcs.ansitowcs
-_t = wcs.wcstoansi
-DIR_SEP = _T(DIR_SEP_)
-CREATE_TEST("ffiW")
+    wcs = require"path.win32.wcs".load("ffi")
+    _T, _t = wcs.ansitowcs, wcs.wcstoansi
+    fs  = require"path.win32.fs".load("ffi", "W")
+    CREATE_TEST("ffiW")
+  end
+end
 
 end
 -------------------------------------------------------------------------------
