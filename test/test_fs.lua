@@ -108,7 +108,7 @@ end
 local _ENV = TEST_CASE(name .. ": file manipulation") do
 
 local cwd, base
-local data ="123\r\n456"
+local data ="123\r\n456\n789"
 
 function teardown()
   fs.chdir(cwd)
