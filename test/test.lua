@@ -38,7 +38,7 @@ local function clone(t, o)
   return o
 end
 
-local _ENV = TEST_CASE('PATH manipulation')
+local _ENV = TEST_CASE('PATH manipulation') do
 
 local function testpath(pth,p1,p2,p3)
   local dir,rest = path.splitpath(pth)
@@ -135,7 +135,9 @@ function test_quote()
   assert_equal('/hello world', path_unx:unquote('"/hello world"'))
 end
 
-local _ENV = TEST_CASE('PATH system error')
+end
+
+local _ENV = TEST_CASE('PATH system error') do
 
 function test()
   local path = path.IS_WINDOWS and path_unx or path_win
@@ -143,7 +145,9 @@ function test()
   assert_error(function() path.size('./1.txt') end)
 end
 
-local _ENV = TEST_CASE('PATH fullpath')
+end
+
+local _ENV = TEST_CASE('PATH fullpath') do
 
 function test_user_home()
   local p = assert_string(path.user_home())
@@ -160,7 +164,9 @@ function test_win()
   end
 end
 
-local _ENV = TEST_CASE('PATH make dir')
+end
+
+local _ENV = TEST_CASE('PATH make dir') do
 
 local cwd
 
@@ -327,7 +333,9 @@ function test_findfile_break()
   assert_true(flag)
 end
 
-local _ENV = TEST_CASE('PATH rename')
+end
+
+local _ENV = TEST_CASE('PATH rename') do
 
 local cwd
 
@@ -396,16 +404,18 @@ function test_rename_force_file()
 end
 
 function test_rename_force_dir()
-  assert( path.rename(
+  assert_nil( path.rename(
     path.join(cwd, '1', 'from.dat'),
     path.join(cwd, '1', 'to'),
     true
   ))
-  assert_false(path.exists(path.join(cwd, '1', 'from.dat')))
-  assert(path.exists(path.join(cwd, '1', 'to.dat')))
+  assert_equal(path.join(cwd, '1', 'from.dat'), path.exists(path.join(cwd, '1', 'from.dat')))
+  assert_equal(path.join(cwd, '1', 'to'), path.isdir(path.join(cwd, '1', 'to')))
 end
 
-local _ENV = TEST_CASE('PATH chdir')
+end
+
+local _ENV = TEST_CASE('PATH chdir') do
 
 local cwd
 
@@ -429,7 +439,9 @@ function test_chdir()
   assert(path.isdir('./2'))
 end
 
-local _ENV = TEST_CASE('PATH copy')
+end
+
+local _ENV = TEST_CASE('PATH copy') do
 
 local cwd, files
 
@@ -451,6 +463,8 @@ function teardown()
   path.remove(path.join(cwd, '1', '2', '3'))
   path.remove(path.join(cwd, '1', '2'))
   path.remove(path.join(cwd, '1'))
+  path.remove(path.join(cwd, '2', 'to'))
+  path.remove(path.join(cwd, '2'))
 
 end
 
@@ -459,6 +473,7 @@ function setup()
   teardown()
 
   path.mkdir(path.join(cwd, '1'))
+  path.mkdir(path.join(cwd, '2', 'to'))
   mkfile(path.join(cwd, '1', 'a1.txt'), '12345')
   mkfile(path.join(cwd, '1', 'a2.txt'), '54321')
   mkfile(path.join(cwd, '1', 'b1.txt'), '12345')
@@ -496,6 +511,15 @@ function test_copy_overwrite()
     {overwrite = true}
   ))
   assert_equal("12345", read_file(path.join(cwd, '1', 'a2.txt')))
+end
+
+function test_copy_overwrite_dir()
+  assert_nil( path.copy(
+    path.join(cwd, '1', 'a1.txt'),
+    path.join(cwd, '2', 'to'),
+    {overwrite = true}
+  ))
+  assert_equal(path.join(cwd, '2', 'to'), path.isdir(path.join(cwd, '2', 'to')))
 end
 
 function test_copy_overwrite_bool()
@@ -591,7 +615,9 @@ function test_copy_error_break()
   assert_true(flag)
 end
 
-local _ENV = TEST_CASE('PATH clean dir')
+end
+
+local _ENV = TEST_CASE('PATH clean dir') do
 
 local cwd
 
@@ -698,6 +724,8 @@ function test_remove_error_break()
     end;
   }))
   assert_true(flag)
+end
+
 end
 
 if not LUNIT_RUN then lunit.run() end
