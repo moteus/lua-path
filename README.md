@@ -14,5 +14,5 @@ local ftp_path = PATH.new('/')
 print(ftp_path:join("/root", "some", "dir")) -- /root/some/dir
 
 -- All functions specific to system will fail
-assert(not pcall( ftp_path:currentdir() ) )
+assert(not pcall( ftp_path.currentdir, ftp_path ) )
 ```
