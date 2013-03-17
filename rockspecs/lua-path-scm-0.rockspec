@@ -24,9 +24,19 @@ build = {
     "test",
   },
   modules = {
-    ["path"                        ] = "lua/path.lua",
-    ["path.findfile"               ] = "lua/path/findfile.lua",
-    ["path.module"                 ] = "lua/path/module.lua",
+    ["path"                   ] = "lua/path.lua",
+    ["path.findfile"          ] = "lua/path/findfile.lua",
+    ["path.lfs.fs"            ] = "lua/path/lfs/fs.lua",
+    ["path.module"            ] = "lua/path/module.lua",
+    ["path.win32.alien.fs"    ] = "lua/path/win32/alien/fs.lua",
+    ["path.win32.alien.types" ] = "lua/path/win32/alien/types.lua",
+    ["path.win32.alien.utils" ] = "lua/path/win32/alien/utils.lua",
+    ["path.win32.alien.wcs"   ] = "lua/path/win32/alien/wcs.lua",
+    ["path.win32.ffi.fs"      ] = "lua/path/win32/ffi/fs.lua",
+    ["path.win32.ffi.types"   ] = "lua/path/win32/ffi/types.lua",
+    ["path.win32.ffi.wcs"     ] = "lua/path/win32/ffi/wcs.lua",
+    ["path.win32.fs"          ] = "lua/path/win32/fs.lua",
+    ["path.win32.wcs"         ] = "lua/path/win32/wcs.lua",
   }
 }
 
