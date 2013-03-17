@@ -104,13 +104,13 @@ DeviceIoControl_:types{abi="stdcall", ret = BOOL, HANDLE, DWORD, LPVOID, DWORD, 
 local function GetCurrentDirectory(u)
   local n = (u and GetCurrentDirectoryW or GetCurrentDirectoryA)(0, NULL)
   if n == 0 then
-    local err = C.GetLastError()
+    local err = GetLastError()
     return nil, err
   end
   local buf = alien.buffer(u and n*2 or n)
   n = (u and GetCurrentDirectoryW or GetCurrentDirectoryA)(n, buf)
   if n == 0 then
-    local err = C.GetLastError()
+    local err = GetLastError()
     return nil, err
   end
   return buf:tostring(u and n*2 or n )
@@ -130,13 +130,13 @@ end
 local function GetTempPath(u)
   local n = (u and GetTempPathW or GetTempPathA)(0, NULL)
   if n == 0 then
-    local err = C.GetLastError()
+    local err = GetLastError()
     return nil, err
   end
   local buf = alien.buffer(u and n*2 or n)
   n = (u and GetTempPathW or GetTempPathA)(n, buf)
   if n == 0 then
-    local err = C.GetLastError()
+    local err = GetLastError()
     return nil, err
   end
   return buf:tostring(u and n*2 or n )

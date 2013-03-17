@@ -103,6 +103,11 @@ function test_md()
   assert_false(fs.exists(P))
 end
 
+function test_tmpdir()
+  local p = assert_string(fs.tmpdir())
+  assert_equal(p, fs.isdir(p))
+end
+
 end
 
 local _ENV = TEST_CASE(name .. ": file manipulation") do

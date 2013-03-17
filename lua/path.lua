@@ -20,7 +20,6 @@ PATH.IS_WINDOWS = IS_WINDOWS
 -- PATH manipulation 
 
 function PATH:unquote(P)
-  P = trim(P)
   if P:sub(1,1) == '"' and P:sub(-1,-1) == '"' then
     return (P:sub(2,-2))
   end

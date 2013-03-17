@@ -54,9 +54,10 @@ local WIN32_FIND_DATAW = CTYPES.WIN32_FIND_DATAW
 local FILETIME         = CTYPES.FILETIME
 local INVALID_HANDLE   = types.INVALID_HANDLE
 local NULL             = ffi.cast("void*", 0)
+local NULLSTR          = ffi.cast("CHAR*", NULL)
 
 local function GetCurrentDirectory(u)
-  local n = (u and C.GetCurrentDirectoryW or C.GetCurrentDirectoryA)(0,nil)
+  local n = (u and C.GetCurrentDirectoryW or C.GetCurrentDirectoryA)(0,NULLSTR)
   if n == 0 then
     local err = C.GetLastError()
     return nil, err
@@ -84,7 +85,7 @@ local function SetCurrentDirectory(u, P)
 end
 
 local function GetTempPath(u)
-  local n = (u and C.GetTempPathW or C.GetTempPathA)(0,NULL)
+  local n = (u and C.GetTempPathW or C.GetTempPathA)(0,NULLSTR)
   if n == 0 then
     local err = C.GetLastError()
     return nil, err

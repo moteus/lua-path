@@ -117,12 +117,47 @@ function test_norm()
   assert_equal("../hello",        path_unx:normolize("..\\hello\\world\\.."))
 end
 
+function test_quote()
+  assert_equal('c:\\hello', path_win:quote('c:\\hello'))
+  assert_equal('"c:\\hello world"', path_win:quote('c:\\hello world'))
+  assert_equal('/hello', path_unx:quote('/hello'))
+  assert_equal('"/hello world"', path_unx:quote('/hello world'))
+
+  assert_equal('c:\\hello', path_win:unquote('c:\\hello'))
+  assert_equal('c:\\hello', path_win:unquote('"c:\\hello"'))
+  assert_equal('c:\\"hello"', path_win:unquote('c:\\"hello"'))
+  assert_equal('c:\\hello world', path_win:unquote('"c:\\hello world"'))
+  assert_equal('c:\\hello world', path_win:unquote('c:\\hello world'))
+  assert_equal('/hello', path_unx:unquote('/hello'))
+  assert_equal('/hello', path_unx:unquote('"/hello"'))
+  assert_equal('/"hello"', path_unx:unquote('/"hello"'))
+  assert_equal('/hello world', path_unx:unquote('/hello world'))
+  assert_equal('/hello world', path_unx:unquote('"/hello world"'))
+end
+
 local _ENV = TEST_CASE('PATH system error')
 
 function test()
   local path = path.IS_WINDOWS and path_unx or path_win
   assert_error(function() path.mkdir('./1') end)
   assert_error(function() path.size('./1.txt') end)
+end
+
+local _ENV = TEST_CASE('PATH fullpath')
+
+function test_user_home()
+  local p = assert_string(path.user_home())
+  assert_equal(p, path.isdir(p))
+  assert_equal(p, path.fullpath("~"))
+end
+
+function test_win()
+  if path.IS_WINDOWS then
+    local p = assert_string(path.currentdir())
+    assert_equal(p, path.isdir(p))
+    local _, tp = path.splitroot(p)
+    assert_equal(p, path.fullpath(path.DIR_SEP .. tp))
+  end
 end
 
 local _ENV = TEST_CASE('PATH make dir')

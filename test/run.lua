@@ -1,3 +1,10 @@
+function prequire(...)
+  local ok, mod = pcall(require, ...)
+  if not ok then return mod, ... end
+  return nil, mod
+end
+
+prequire"luacov"
 local lunit = require "lunit"
 LUNIT_RUN = true
 
