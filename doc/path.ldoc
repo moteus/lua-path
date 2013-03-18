@@ -103,115 +103,146 @@ function PATH:isfullpath(P)end
 --
 function PATH:user_home()end
 
----
--- Windows only
--- depends on Alien/FFI/afx
-function PATH:fileattrib(P)end
+--- Return file attributes
+-- On Windows it is result of GetFileAttributesEx
+-- depends on path.fs
+function PATH:flags(P)end
 
 --- Return path to temp directory.
 -- On Windows can use GetTempPath if Alien/FFI/afx have been found
 -- On Windows use TMP/TEMP environment variables
+-- depends on path.fs
 function PATH:tmpdir() end
 
 --- Return full path for temp file.
---
+-- depends on path.fs
 function PATH:tmpname()end
 
 --- 
--- On Windows can use GetFileAttributesEx if Alien/FFI/afx have been found
+-- depends on path.fs
 function PATH:size(P)end
 
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:fullpath(P)end
 
 ---
 -- @local
--- depends on lfs
+-- depends on path.fs
 function PATH:attrib(P, ...)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:exists(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:isdir(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:isfile(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:islink(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:ctime(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:mtime(P)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:atime(P)end
 
 ---
--- depends on lfs and LuaDate
+-- depends on path.fs and LuaDate
 function PATH:cdate(P)end
 
 ---
--- depends on lfs and LuaDate
+-- depends on path.fs and LuaDate
 function PATH:mdate(P)end
 
 ---
--- depends on lfs and LuaDate
+-- depends on path.fs and LuaDate
 function PATH:adate(P)end
 
 --- Create new directory.
--- depends on lfs
+-- depends on path.fs
 function PATH:mkdir(P)end
 
 --- Remove empty directory.
--- depends on lfs
+-- depends on path.fs
 function PATH:rmdir(P)end
 
 --- Remove empty directory or file.
--- depends on lfs
+-- @tparam P string
+-- @tparam opt ?remove_opt
+-- depends on path.fs
 function PATH:remove(P, opt)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:rename(from,to,force)end
 
 ---
--- depends on lfs
+-- @tparam from string
+-- @tparam to string
+-- @tparam opt ?copy_opt|boolean
+-- depends on path.fs
+function PATH:copy(from,to,opt)end
+
+---
+-- depends on path.fs
 function PATH:currentdir()end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:chdir(P)end
 
 ---
---
+-- depends on path.fs
 function PATH:each(str_file, str_params, func_callback, tbl_option)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:each(str_file, str_params, tbl_option)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:each(str_file, func_callback, tbl_option)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:each(str_file, tbl_option)end
 
 ---
--- depends on lfs
+-- depends on path.fs
 function PATH:each(func_callback, tbl_option)end
 
+---
+--
+local copy_opt = {
+  delay = false;
+  recurse = false;
+  skipdirs = false;
+  skipfiles = false;
+  accept = function(src,dst) return true end;
+  error  = function(err, src, dst) return true end;
+}
+
+---
+--
+local remove_opt = {
+  delay = true;
+  recurse = false;
+  skipdirs = false;
+  skipfiles = false;
+  accept = function(src) return true end;
+  error  = function(err, src) return true end;
+}

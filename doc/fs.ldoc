@@ -1,0 +1,104 @@
+---
+--
+local fs = {}
+
+fs.DIR_SEP = DIR_SEP
+
+---
+--
+function fs.currentdir() end
+
+---
+--
+function fs.attributes(P, name)end
+
+--- Return file attributes
+-- On Windows it is result of GetFileAttributesEx
+function fs.flags(P) end
+
+---
+--
+function fs.ctime(P) end
+
+---
+--
+function fs.atime(P) end
+
+---
+--
+function fs.mtime(P) end
+
+---
+--
+function fs.size(P) end
+
+---
+--
+function fs.exists(P) end
+
+---
+--
+function fs.isdir(P) end
+
+---
+--
+function fs.isfile(P) end
+
+---
+--
+function fs.islink(P) end
+
+---
+--
+function fs.mkdir(P) end
+
+---
+--
+function fs.rmdir(P) end
+
+---
+--
+function fs.chdir(P) end
+
+---
+--
+function fs.copy(src, dst, force) end
+
+---
+--
+function fs.move(src, dst, flags) end
+
+---
+--
+function fs.remove(P) end
+
+---
+--
+function fs.tmpdir() end
+
+function fs.touch(P, atime, ctime) end
+
+--- Implimentation of lfs.dir
+--
+function fs.dir() end
+
+--- Simple non recursive iterator
+-- @local
+function fs.foreach(base, callback, option) end
+
+--- Implimentation of afx.findfile
+-- @tparam option each_options
+function fs.each(option) end
+
+---
+--
+local each_options = {
+  file      = ".\\*.lua",  --- file path and mask
+  param     = "fpnmaztcl", --- parameters selector
+  recurse   = false,       ---
+  reverse   = nil,         --- direction of recursion
+  delay     = false,       --- if true then iterate over snapshot of directory
+  skipdirs  = false,       ---
+  skipfiles = false,       ---
+  skipdots  = true,        ---
+}
