@@ -182,7 +182,16 @@ foreach_impl = function(base, match, callback, option)
 end
 
 local function filePat2rexPat(pat)
-  local pat = "^" .. pat:gsub("%.","%%."):gsub("%*",".*"):gsub("%?", ".") .. "$"
+  if pat:find("[*?]") then
+    local post = '$'
+    if pat:find("*", 1, true) then 
+      if pat:find(".", 1, true) then post = '[^.]*$'
+      else post = '' end
+    end
+    pat = "^" .. pat:gsub("%.","%%."):gsub("%*",".*"):gsub("%?", ".?") .. post
+  else
+    pat = "^" .. pat:gsub("%.","%%.") .. "$"
+  end
   if IS_WINDOWS then pat = pat:upper() end
   return pat
 end
@@ -277,5 +286,65 @@ end
 local create_each = require "path.findfile".load
 
 _M.each = create_each(_M.each_impl)
+
+local function match_pat_selftest()
+
+  local t = {
+    ["*.txt"] = {
+      [".txt"     ] = true;
+      ["1.txt"    ] = true;
+      ["1.txtdat" ] = true;
+      [".txtdat"  ] = false;
+      [".txt.dat" ] = false;
+      [".dat.txt" ] = true;
+    };
+    ["*.txt*"] = {
+      [".txt"     ] = true;
+      ["1.txt"    ] = true;
+      ["1.txtdat" ] = true;
+      [".txtdat"  ] = true;
+      [".txt.dat" ] = true;
+      [".dat.txt" ] = true;
+    };
+    ["?.txt"] = {
+      [".txt"     ] = true;
+      ["1.txt"    ] = true;
+      ["1.txtdat" ] = false;
+      [".txtdat"  ] = false;
+      [".txt.dat" ] = false;
+      [".dat.txt" ] = false;
+    };
+    ["1?.txt"] = {
+      [".txt"     ] = false;
+      ["1.txt"    ] = true;
+      ["1.txtdat" ] = false;
+      [".txtdat"  ] = false;
+      [".txt.dat" ] = false;
+      [".dat.txt" ] = false;
+    };
+    ["1*.txt"] = {
+      [".txt"     ] = false;
+      ["1.txt"    ] = true;
+      ["1.txtdat" ] = true;
+      [".txtdat"  ] = false;
+      [".txt.dat" ] = false;
+      [".dat.txt" ] = false;
+    };
+  }
+
+  local function test_match(pat, t)
+    local cmp = match_pat(pat)
+    for fname, status in pairs(t) do 
+      if status ~= cmp(fname) then
+        io.write("Pat: ", pat, " Name: ", fname, " Expected: ", tostring(status), " Got: ", tostring(cmp(fname)), "\n")
+      end
+    end
+  end
+
+  for k, v in pairs(t) do
+    test_match(k,v)
+  end
+
+end
 
 return _M

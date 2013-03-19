@@ -336,7 +336,7 @@ function teardown()
   collectgarbage"collect" -- dir cleanup
   fs.chdir(cwd)
   for _, f in ipairs(files) do
-    fs.remove(f, data)
+    fs.remove(f)
   end
   fs.rmdir(J(base, _T"1"))
   fs.rmdir(base)
@@ -488,7 +488,7 @@ function teardown()
   collectgarbage"collect" -- dir cleanup
   fs.chdir(cwd)
   for _, f in ipairs(files) do
-    fs.remove(f, data)
+    fs.remove(f)
   end
   fs.rmdir(J(base, _T"3"))
   fs.rmdir(J(base, _T"2"))
@@ -713,7 +713,7 @@ function test_each_attr_generic_for()
     param = "fpnmaztcl",
   }do
     local attr = assert(fs.attributes(f))
-    assert(ifind(F, f), f)
+    assert(ifind(F, f), _t(f))
     assert_string(f)
     assert_string(p)
     assert_string(n)
@@ -736,6 +736,221 @@ function test_each_attr_generic_for()
     N = N + 1
   end
   assert_equal(#F, N)
+end
+
+end
+
+local _ENV = TEST_CASE(name .. ": mask") do
+
+local cwd, base
+local data = "123\r\n456"
+local files
+
+function teardown()
+  collectgarbage"collect" -- dir cleanup
+  fs.chdir(cwd)
+  for _, f in ipairs(files) do
+    fs.remove(f)
+  end
+  fs.rmdir(base)
+end
+
+function setup()
+  cwd = fs.currentdir()
+  base = J(cwd, _T"tmp")
+  files = {
+    J(base, _T"test"),
+    J(base, _T"test.txt"),
+    J(base, _T"test.txtdat"),
+    J(base, _T"test.txt.dat"),
+  }
+  teardown()
+  assert_true(fs.mkdir(base))
+  for _, f in ipairs(files) do
+    assert(mkfile(f, data))
+  end
+end
+
+function test_ext1()
+  local F = clone(files)
+  local n = 0
+  table.remove(F,1)
+  table.remove(F,3)
+  fs.foreach(base .. DIR_SEP .. _T"*.txt", function(f)
+    assert(ifind(F, f), _t(f))
+    n = n + 1
+  end)
+  assert_equal(#F, n)
+end
+
+function test_ext2()
+  local F = clone(files)
+  local n = 0
+  table.remove(F,1)
+  table.remove(F,3)
+  fs.foreach(base .. DIR_SEP .. _T"test*.txt", function(f)
+    assert(ifind(F, f), _t(f))
+    n = n + 1
+  end)
+  assert_equal(#F, n)
+end
+
+function test_ext3()
+  local F = clone(files)
+  local n = 0
+  table.remove(F,1)
+  table.remove(F,2)
+  table.remove(F,2)
+  fs.foreach(base .. DIR_SEP .. _T"test?.txt", function(f)
+    assert(ifind(F, f), _t(f))
+    n = n + 1
+  end)
+  assert_equal(#F, n)
+end
+
+function test_noext()
+  local F = clone(files)
+  local n = 0
+  table.remove(F,2)
+  table.remove(F,2)
+  table.remove(F,2)
+  fs.foreach(base .. DIR_SEP .. _T"test", function(f)
+    assert(ifind(F, f), _t(f))
+    n = n + 1
+  end)
+  assert_equal(#F, n)
+end
+
+function test_full()
+  local F = clone(files)
+  local n = 0
+  table.remove(F,1)
+  table.remove(F,2)
+  table.remove(F,2)
+  fs.foreach(base .. DIR_SEP .. _T"test.txt", function(f)
+    assert(ifind(F, f), _t(f))
+    n = n + 1
+  end)
+  assert_equal(#F, n)
+end
+
+end
+
+local _ENV = TEST_CASE(name .. ": mask2") do
+
+local cwd, base
+local data = "123\r\n456"
+local files
+
+function teardown()
+  collectgarbage"collect" -- dir cleanup
+  fs.chdir(cwd)
+  for _, f in ipairs(files) do
+    fs.remove(f)
+  end
+  fs.rmdir(base)
+end
+
+function setup()
+  cwd = fs.currentdir()
+  base = J(cwd, _T"tmp")
+  files = {
+    J(base, _T".txt"),
+    J(base, _T"1.txt"),
+    J(base, _T"1.txtdat"),
+    J(base, _T".txtdat"),
+    J(base, _T".txt.dat"),
+    J(base, _T".dat.txt"),
+  }
+  teardown()
+  assert_true(fs.mkdir(base))
+  for _, f in ipairs(files) do
+    assert(mkfile(f, data))
+  end
+end
+
+function test_ext1()
+  local F = {
+    J(base, _T".txt"),
+    J(base, _T"1.txt"),
+    J(base, _T"1.txtdat"),
+    J(base, _T".dat.txt"),
+  }
+
+  fs.foreach(base .. DIR_SEP .. _T"*.txt", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
+end
+
+function test_ext2()
+  local F = {
+    J(base, _T".txt"),
+    J(base, _T".txt.dat"),
+    J(base, _T".txtdat"),
+    J(base, _T"1.txt"),
+    J(base, _T"1.txtdat"),
+    J(base, _T".dat.txt"),
+  }
+
+  fs.foreach(base .. DIR_SEP .. _T"*.txt*", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
+end
+
+function test_ext3()
+  local F = {
+    J(base, _T".txt"),
+    J(base, _T"1.txt"),
+  }
+  fs.foreach(base .. DIR_SEP .. _T"?.txt", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
+end
+
+function test_ext4()
+  local F = {
+    J(base, _T"1.txt"),
+  }
+  fs.foreach(base .. DIR_SEP .. _T"1?.txt", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
+end
+
+function test_ext5()
+  local F = {
+    J(base, _T"1.txt"),
+    J(base, _T"1.txtdat"),
+  }
+  fs.foreach(base .. DIR_SEP .. _T"1*.txt", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
+end
+
+function test_ext6()
+  local F = {
+    J(base, _T".txt"),
+    J(base, _T".txt.dat"),
+    J(base, _T".txtdat"),
+    J(base, _T"1.txt"),
+    J(base, _T"1.txtdat"),
+    J(base, _T".dat.txt"),
+  }
+
+  fs.foreach(base .. DIR_SEP .. _T"*.tx*t", function(f)
+    table.remove(F,assert_number(ifind(F, f), _t(f)))
+  end)
+  local _, str = next(F)
+  assert_equal(nil, _t(str))
 end
 
 end
