@@ -316,11 +316,11 @@ local CONST = {
   ERROR_ALREADY_EXISTS                     =   183; -- 0x000000B7
 }
 
-function lshift(v, n)
+local function lshift(v, n)
   return math.floor(v * (2 ^ n))
 end
 
-function rshift(v, n)
+local function rshift(v, n)
   return math.floor(v / (2 ^ n))
 end
 
