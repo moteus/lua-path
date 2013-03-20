@@ -16,3 +16,21 @@ print(ftp_path:join("/root", "some", "dir")) -- /root/some/dir
 -- All functions specific to system will fail
 assert(not pcall( ftp_path.currentdir, ftp_path ) )
 ```
+
+```lua
+-- clean currentdir
+
+local path = require "path"
+path.each("./*", function(P, mode)
+  if mode == 'directrory' then 
+    path.rmdir(P)
+  else
+    path.remove(P)
+  end
+end,{
+  param = "fm";   -- request full path and mode
+  delay = true;   -- use snapshot of directory
+  recurse = true; -- include subdirs
+  reverse = true; -- subdirs at first 
+})
+```
