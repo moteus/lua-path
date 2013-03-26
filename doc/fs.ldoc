@@ -1,81 +1,95 @@
 ---
+-- @module path.fs
 --
+-- This is lowlevel module which implement 
+-- system dependent operation.
+-- <br/> Can use LuaFileSystem or alien/ffi on Windows
+
 local fs = {}
 
+--- ???
+--
 fs.DIR_SEP = DIR_SEP
 
----
+--- ???
+--
+fs.ANY_MASK = ANY_MASK
+
+--- ???
 --
 function fs.currentdir() end
 
----
+--- ???
 --
 function fs.attributes(P, name)end
 
---- Return file attributes
+--- Return file attributes.
+--
 -- On Windows it is result of GetFileAttributesEx
 function fs.flags(P) end
 
----
+--- ???
 --
 function fs.ctime(P) end
 
----
+--- ???
 --
 function fs.atime(P) end
 
----
+--- ???
 --
 function fs.mtime(P) end
 
----
+--- ???
 --
 function fs.size(P) end
 
----
+--- ???
 --
 function fs.exists(P) end
 
----
+--- ???
 --
 function fs.isdir(P) end
 
----
+--- ???
 --
 function fs.isfile(P) end
 
----
+--- ???
 --
 function fs.islink(P) end
 
----
+--- ???
 --
 function fs.mkdir(P) end
 
----
+--- ???
 --
 function fs.rmdir(P) end
 
----
+--- ???
 --
 function fs.chdir(P) end
 
----
+--- ???
 --
 function fs.copy(src, dst, force) end
 
----
+--- ???
 --
 function fs.move(src, dst, flags) end
 
----
+--- ???
 --
 function fs.remove(P) end
 
----
+--- ???
 --
 function fs.tmpdir() end
 
+--- ???
+--
 function fs.touch(P, atime, ctime) end
 
 --- Implimentation of lfs.dir
@@ -87,18 +101,35 @@ function fs.dir() end
 function fs.foreach(base, callback, option) end
 
 --- Implimentation of afx.findfile
--- @tparam option each_options
+-- @tparam each_options option
 function fs.each(option) end
 
----
+--- ???
 --
-local each_options = {
-  file      = ".\\*.lua",  --- file path and mask
-  param     = "fpnmaztcl", --- parameters selector
-  recurse   = false,       ---
-  reverse   = nil,         --- direction of recursion
-  delay     = false,       --- if true then iterate over snapshot of directory
-  skipdirs  = false,       ---
-  skipfiles = false,       ---
-  skipdots  = true,        ---
-}
+-- opt.file="./temp" -- match only this path
+-- <br/> opt.file="./temp/" -- match all files in this path
+-- <br/> This function do not expand filepath. So if we use "./*" mask and 'f' selector we get './some.file'.
+--
+-- @table each_options
+-- @tfield[opt=fs.currentdir() .. fs.DIR_SEP .. fs.ANY_MASK] string file path and mask
+-- @tfield[opt="f"] string param
+--      - f fullpath and name
+--      - p path
+--      - n name
+--      - m mode
+--      - a attributes 
+--      - z size
+--      - t atime
+--      - c ctime
+--      - l mtime
+-- @tfield[opt=false] boolean recurse include subdirs
+-- @tfield[opt=nil] boolean reverse direction of recursion
+--      - true subdirs at first
+--      - false subdirs at last
+--      - nil order undefined
+-- @tfield[opt=false] boolean delay if true then iterate over snapshot of directory
+-- @tfield[opt=false] boolean skipdirs
+-- @tfield[opt=false] boolean skipfiles
+-- @tfield[opt=true] boolean skipdots
+-- 
+

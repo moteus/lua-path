@@ -1,99 +1,99 @@
-
---[[--- @usage
-local PATH = require "path"
-
--- suppose we run on windows
-assert(PATH.IS_WINDOWS)
-
--- we can use system dependet function
-print(PATH.user_home())  -- C:\Documents and Settings\Admin
-print(PATH.currentdir()) -- C:\lua\5.1
-
--- but we can use specific system path notation
-local ftp_path = PATH.new('/')
-print(ftp_path:join("/root", "some", "dir")) -- /root/some/dir
-
--- All functions specific to system will fail
-assert(not pcall( ftp_path:currentdir() ) )
---]]
-
-
-local PATH = {}
-
 ---
+-- @module path
 --
-PATH.DIR_SEP    = DIR_SEP
+-- @usage
+-- local PATH = require "path"
+--
+-- -- suppose we run on windows
+-- assert(PATH.IS_WINDOWS)
+--
+-- -- we can use system dependet function
+-- print(PATH.user_home())  -- C:\Documents and Settings\Admin
+-- print(PATH.currentdir()) -- C:\lua\5.1
+--
+-- -- but we can use specific system path notation
+-- local ftp_path = PATH.new('/')
+-- print(ftp_path.join("/root", "some", "dir")) -- /root/some/dir
+--
+-- -- All functions specific to system will fail
+-- assert(not pcall( function() ftp_path.currentdir() end) )
 
----
+local path = {}
+
+--- ???
 --
-PATH.IS_WINDOWS = IS_WINDOWS
+path.DIR_SEP    = DIR_SEP
+
+--- ???
+--
+path.IS_WINDOWS = IS_WINDOWS
 
 --
 -- PATH manipulation 
 
 ---
 -- @local
-function PATH:unquote(P)end
+function path.unquote(P)end
 
----
+--- ???
 -- @local
-function PATH:quote(P)end
+function path.quote(P)end
 
----
+--- ???
 --
-function PATH:has_dir_end(P)end
+function path.has_dir_end(P)end
 
----
+--- ???
 --
-function PATH:remove_dir_end(P)end
+function path.remove_dir_end(P)end
 
----
+--- ???
 --
-function PATH:ensure_dir_end(P)end
+function path.ensure_dir_end(P)end
 
----
+--- ???
 -- @local
-function PATH:normolize_sep(P) end
+function path.normolize_sep(P) end
 
----
+--- ???
 --
-function PATH:normolize(P) end
+function path.normolize(P) end
 
----
+--- ???
 --
-function PATH:join(...)end
+function path.join(...)end
 
----
+--- ???
 --
-function PATH:splitext(P) end
+function path.splitext(P) end
 
----
+--- ???
 --
-function PATH:splitpath(P)end
+function path.splitpath(P)end
 
----
+--- ???
 --
-function PATH:splitroot(P)end
+function path.splitroot(P)end
 
----
+--- ???
 --
-function PATH:basename(P)end
+function path.basename(P)end
 
----
+--- ???
 --
-function PATH:dirname(P)end
+function path.dirname(P)end
 
----
+--- ???
 --
-function PATH:extension(P)end
+function path.extension(P)end
 
----
+--- ???
 --
-function PATH:root(P)end
+function path.root(P)end
 
----
+--- ???
 --
-function PATH:isfullpath(P)end
+function path.isfullpath(P)end
 
 
 --
@@ -101,148 +101,149 @@ function PATH:isfullpath(P)end
 
 --- return user_home dir
 --
-function PATH:user_home()end
+function path.user_home()end
 
---- Return file attributes
+--- Return file attributes.
+--
 -- On Windows it is result of GetFileAttributesEx
--- depends on path.fs
-function PATH:flags(P)end
+-- <br/>depends on `path.fs`
+function path.flags(P)end
 
 --- Return path to temp directory.
 -- On Windows can use GetTempPath if Alien/FFI/afx have been found
 -- On Windows use TMP/TEMP environment variables
--- depends on path.fs
-function PATH:tmpdir() end
+-- <br/>depends on `path.fs`
+function path.tmpdir() end
 
 --- Return full path for temp file.
--- depends on path.fs
-function PATH:tmpname()end
+-- <br/>depends on `path.fs`
+function path.tmpname()end
 
---- 
--- depends on path.fs
-function PATH:size(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.size(P)end
 
 
----
--- depends on path.fs
-function PATH:fullpath(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.fullpath(P)end
 
----
+--- ???
 -- @local
--- depends on path.fs
-function PATH:attrib(P, ...)end
+-- <br/>depends on `path.fs`
+function path.attrib(P, ...)end
 
----
--- depends on path.fs
-function PATH:exists(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.exists(P)end
 
----
--- depends on path.fs
-function PATH:isdir(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.isdir(P)end
 
----
--- depends on path.fs
-function PATH:isfile(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.isfile(P)end
 
----
--- depends on path.fs
-function PATH:islink(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.islink(P)end
 
----
--- depends on path.fs
-function PATH:ctime(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.ctime(P)end
 
----
--- depends on path.fs
-function PATH:mtime(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.mtime(P)end
 
----
--- depends on path.fs
-function PATH:atime(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.atime(P)end
 
----
--- depends on path.fs and LuaDate
-function PATH:cdate(P)end
+--- ???
+-- <br/>depends on `path.fs` and LuaDate
+function path.cdate(P)end
 
----
--- depends on path.fs and LuaDate
-function PATH:mdate(P)end
+--- ???
+-- <br/>depends on `path.fs` and LuaDate
+function path.mdate(P)end
 
----
--- depends on path.fs and LuaDate
-function PATH:adate(P)end
+--- ???
+-- <br/>depends on `path.fs` and LuaDate
+function path.adate(P)end
 
 --- Create new directory.
--- depends on path.fs
-function PATH:mkdir(P)end
+-- <br/>depends on `path.fs`
+function path.mkdir(P)end
 
 --- Remove empty directory.
--- depends on path.fs
-function PATH:rmdir(P)end
+-- <br/>depends on `path.fs`
+function path.rmdir(P)end
 
 --- Remove empty directory or file.
--- @tparam P string
--- @tparam opt ?remove_opt
--- depends on path.fs
-function PATH:remove(P, opt)end
+-- @tparam string P 
+-- @tparam ?remove_opt opt
+-- <br/>depends on `path.fs`
+function path.remove(P, opt)end
 
----
--- depends on path.fs
-function PATH:rename(from,to,force)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.rename(from,to,force)end
 
----
--- @tparam from string
--- @tparam to string
--- @tparam opt ?copy_opt|boolean
--- depends on path.fs
-function PATH:copy(from,to,opt)end
+--- ???
+-- @tparam string from
+-- @tparam string to
+-- @tparam ?copy_opt|boolean opt
+-- <br/>depends on `path.fs`
+function path.copy(from,to,opt)end
 
----
--- depends on path.fs
-function PATH:currentdir()end
+--- ???
+-- <br/>depends on `path.fs`
+function path.currentdir()end
 
----
--- depends on path.fs
-function PATH:chdir(P)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.chdir(P)end
 
----
--- depends on path.fs
-function PATH:each(str_file, str_params, func_callback, tbl_option)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.each(str_file, str_params, func_callback, tbl_option)end
 
----
--- depends on path.fs
-function PATH:each(str_file, str_params, tbl_option)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.each(str_file, str_params, tbl_option)end
 
----
--- depends on path.fs
-function PATH:each(str_file, func_callback, tbl_option)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.each(str_file, func_callback, tbl_option)end
 
----
--- depends on path.fs
-function PATH:each(str_file, tbl_option)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.each(str_file, tbl_option)end
 
----
--- depends on path.fs
-function PATH:each(func_callback, tbl_option)end
+--- ???
+-- <br/>depends on `path.fs`
+function path.each(func_callback, tbl_option)end
 
----
+--- ???
 --
-local copy_opt = {
-  delay = false;
-  recurse = false;
-  skipdirs = false;
-  skipfiles = false;
-  accept = function(src,dst) return true end;
-  error  = function(err, src, dst) return true end;
-}
+-- @table copy_opt
+-- @tfield[opt=false] boolean delay    
+-- @tfield[opt=false] boolean recurse  
+-- @tfield[opt=false] boolean skipdirs 
+-- @tfield[opt=false] boolean skipfiles
+-- @tfield[opt=function(src,dst) return true end] callable accept
+-- @tfield[opt=function(err, src, dst) return true end] callable error 
+-- @see path.fs.each_options
 
----
+--- ???
 --
-local remove_opt = {
-  delay = true;
-  recurse = false;
-  skipdirs = false;
-  skipfiles = false;
-  accept = function(src) return true end;
-  error  = function(err, src) return true end;
-}
+-- @table remove_opt
+-- @tfield[opt=true] boolean delay    
+-- @tfield[opt=false] boolean recurse  
+-- @tfield[opt=false] boolean skipdirs 
+-- @tfield[opt=false] boolean skipfiles
+-- @tfield[opt=function(src,dst) return true end] callable accept
+-- @tfield[opt=function(err, src, dst) return true end] callable error 
+-- @see path.fs.each_options
