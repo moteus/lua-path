@@ -15,7 +15,7 @@ description = {
 
 dependencies = {
   "lua >= 5.1",
-  "lfs >= 1.4",
+  "luafilesystem >= 1.4",
 }
 
 build = {
