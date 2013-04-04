@@ -293,6 +293,16 @@ function PATH:chdir(P)
   return fs.chdir(self:fullpath(P))
 end
 
+function PATH:isempty(P)
+  assert_system(self)
+  local ok, err = fs.each_impl{
+    file = self:ensure_dir_end(P), 
+    callback = function() return 'pass' end;
+  }
+  if err then return nil, err end
+  return ok ~= 'pass'
+end
+
 local date = prequire "date"
 if date then
   local function make_getfiletime_as_date(fn)
@@ -343,13 +353,10 @@ function PATH:rename(from, to, force)
   return fs.move(from, to, force)
 end
 
-function each_impl(opt)
-  opt.file = PATH:fullpath(opt.file)
-  return fs.each_impl(opt)
-end
-
 local each = require "path.findfile".load(function(opt)
+  local has_dir_end = PATH:has_dir_end(opt.file)
   opt.file = PATH:fullpath(opt.file)
+  if has_dir_end then opt.file = PATH:ensure_dir_end(opt.file) end
   return fs.each_impl(opt)
 end)
 

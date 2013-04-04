@@ -149,6 +149,10 @@ function path.isfile(P)end
 -- <br/>depends on `path.fs`
 function path.islink(P)end
 
+--- Return true if directory is empty
+-- <br/>depends on `path.fs`
+function path.isempty(P)end
+
 --- ???
 -- <br/>depends on `path.fs`
 function path.ctime(P)end

@@ -726,6 +726,62 @@ function test_remove_error_break()
   assert_true(flag)
 end
 
+function test_isempty()
+  assert_false( path.isempty(path.join(cwd, "1")) )
+  assert_equal(8, path.remove(path.join(cwd, "1", "*"), {recurse=true}))
+  assert_equal(path.join(cwd, "1"), path.exists(path.join(cwd, "1")))
+  assert_true(path.isempty(path.join(cwd, "1")))
+end
+
+end
+
+local _ENV = TEST_CASE('PATH each mask') do
+
+local cwd, J
+
+function teardown()
+  path.remove(J(cwd, '1', '2', 'a1.txt'))
+  path.remove(J(cwd, '1', '2', 'a2.txt'))
+  path.remove(J(cwd, '1', '2', 'a3.txt'))
+  path.remove(J(cwd, '1', '2'))
+  path.remove(J(cwd, '1'))
+end
+
+function setup()
+  J = path.join
+  cwd = assert_string(path.currentdir())
+  teardown()
+  mkfile(J(cwd, '1', '2', 'a1.txt'))
+  mkfile(J(cwd, '1', '2', 'a2.txt'))
+  mkfile(J(cwd, '1', '2', 'a3.txt'))
+end
+
+function test_no_mask1()
+  local mask = path.ensure_dir_end(J(cwd, '1', '2'))
+  local files = {
+    [ J(cwd, '1', '2', 'a1.txt') ] = true;
+    [ J(cwd, '1', '2', 'a2.txt') ] = true;
+    [ J(cwd, '1', '2', 'a3.txt') ] = true;
+  }
+  path.each(mask, function(f)
+    assert_true(files[f], "unexpected: " .. f)
+    files[f] = nil
+  end)
+  assert_nil(next(files))
+end
+
+function test_no_mask2()
+  local mask = J(cwd, '1', '2')
+  local files = {
+    [ J(cwd, '1', '2') ] = true;
+  }
+  path.each(mask, function(f)
+    assert_true(files[f], "unexpected: " .. f)
+    files[f] = nil
+  end)
+  assert_nil(next(files))
+end
+
 end
 
 if not LUNIT_RUN then lunit.run() end
