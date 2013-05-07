@@ -22,7 +22,7 @@ assert(not pcall( ftp_path.currentdir, ftp_path ) )
 
 local path = require "path"
 path.each("./*", function(P, mode)
-  if mode == 'directrory' then 
+  if mode == 'directory' then 
     path.rmdir(P)
   else
     path.remove(P)
