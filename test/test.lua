@@ -146,6 +146,19 @@ function test_quote()
   assert_equal('/hello world', path_unx:unquote('"/hello world"'))
 end
 
+function test_dir_end()
+  assert_equal('c:',              path_win:remove_dir_end('c:\\'))
+  assert_equal('c:',              path_win:remove_dir_end('c:\\\\'))
+  assert_equal('c:\\.',           path_win:remove_dir_end('c:\\.\\'))
+  assert_equal('c:\\',            path_win:ensure_dir_end('c:'))
+
+  assert_equal('',                path_unx:remove_dir_end('/'))
+  assert_equal('',                path_unx:remove_dir_end('//'))
+  assert_equal('.',               path_unx:remove_dir_end('./'))
+  assert_equal('/',               path_unx:ensure_dir_end(''))
+  assert_equal('/',               path_unx:ensure_dir_end('/'))
+end
+
 end
 
 local _ENV = TEST_CASE('PATH system error') if true then
