@@ -151,10 +151,11 @@ function test_findfile()
   assert_nil(next(params))
 
   params = clone(dirs)
-  path_each("./*", "fz", function(f, sz)
+  path_each("./*", "fzm", function(f, sz, m)
     f = up(f)
     assert_not_nil(params[f], "unexpected: " .. f)
-    assert_equal(0, sz)
+    if ISW then assert_equal(0, sz) end
+    assert_equal('directory', m)
     params[f] = nil
   end, {skipfiles=true, recurse=true})
   assert_nil(next(params))

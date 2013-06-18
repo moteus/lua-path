@@ -58,7 +58,17 @@ function PATH:normolize(P)
   local DIR_SEP = self.DIR_SEP
 
   local is_unc = self:isunc(P)
-  P = string.gsub(P, DIR_SEP .. '%.' .. DIR_SEP, DIR_SEP):gsub(DIR_SEP .. DIR_SEP, DIR_SEP)
+  while true do -- `/./` => `/`
+    local n P,n = string.gsub(P, DIR_SEP .. '%.' .. DIR_SEP, DIR_SEP)
+    if n == 0 then break end
+  end
+  while true do -- `/` => `/`
+    local n P,n = string.gsub(P, DIR_SEP .. DIR_SEP, DIR_SEP)
+    if n == 0 then break end
+  end
+  P = string.gsub(P, DIR_SEP .. '%.$', '')
+  if (not IS_WINDOWS) and (P == '') then P = '/' end
+
   if is_unc then P = DIR_SEP .. P end
 
   local root, path = nil, P
@@ -92,7 +102,8 @@ function PATH:normolize(P)
     if #P == 2 then return P .. self.DIR_SEP end
     return P
   end
- 
+
+  if (not self.IS_WINDOWS) and (P == DIR_SEP) then return '/' end
   return self:remove_dir_end(P)
 end
 
@@ -333,11 +344,12 @@ function PATH:mkdir(P)
         return nil, 'can not create ' .. p
       end
     else
-      local ok, err = fs.mkdir(self:remove_dir_end(p))
-      if not ok then return nil, err .. ' ' .. p end
+      if IS_WINDOWS or p ~= DIR_SEP then
+        local ok, err = fs.mkdir(self:remove_dir_end(p))
+        if not ok then return nil, err .. ' ' .. p end
+      end
     end
   end
-
   return P
 end
 
