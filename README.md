@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/moteus/lua-path.png?branch=master)](https://travis-ci.org/moteus/lua-path)
+
 Usage:
 ```lua
 local PATH = require "path"
