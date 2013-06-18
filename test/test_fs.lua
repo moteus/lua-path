@@ -1,6 +1,12 @@
 local lunit = require "lunit"
-local tutil = require "utils"
-local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
+local TEST_CASE = lunit.TEST_CASE
+
+local SKIP_CASE
+if lunit.skip then 
+  SKIP_CASE = function(msg) return function() lunit.skip(msg) end end
+else
+  SKIP_CASE = require "utils".skip
+end
 
 local IS_WINDOWS = package.config:sub(1,1) == '\\'
 local fs, wcs, _T, _t
@@ -962,7 +968,7 @@ do -- create tests
 
 if not prequire"lfs" then 
   local _ENV = TEST_CASE("lfs.fs")
-  test = skip"lfs module not found"
+  test = SKIP_CASE"lfs module not found"
 else
   _T, _t = pass_thrue,pass_thrue
   fs = require"path.lfs.fs"
@@ -972,7 +978,7 @@ end
 if IS_WINDOWS then
   if not prequire"alien" then 
     local _ENV = TEST_CASE("alien.fs")
-    test = skip"alien module not found"
+    test = SKIP_CASE"alien module not found"
   else
     _T, _t = pass_thrue,pass_thrue
     fs = require"path.win32.fs".load("alien", "A")
@@ -986,7 +992,7 @@ if IS_WINDOWS then
 
   if not prequire"ffi" then 
     local _ENV = TEST_CASE("ffi.fs")
-    test = skip"ffi module not found"
+    test = SKIP_CASE"ffi module not found"
   else
     _T, _t = pass_thrue,pass_thrue
     fs = require"path.win32.fs".load("ffi", "A")

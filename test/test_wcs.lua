@@ -1,12 +1,19 @@
 local lunit = require "lunit"
-local tutil = require "utils"
-local TEST_CASE, skip = tutil.TEST_CASE, tutil.skip
+local TEST_CASE = lunit.TEST_CASE
+
+local SKIP_CASE
+if lunit.skip then 
+  SKIP_CASE = function(msg) return function() lunit.skip(msg) end end
+else
+  SKIP_CASE = require "utils".skip
+end
 
 local IS_WINDOWS = package.config:sub(1,1) == '\\'
 if not IS_WINDOWS then
   local _ENV = TEST_CASE('WCS')
-  test = skip"windows only tests"
-  return lunit.run()
+  test = SKIP_CASE"windows only tests"
+  if not LUNIT_RUN then lunit.run() end
+  return
 end
 
 local function self_test(wcs)
@@ -91,7 +98,7 @@ local function prequire(...)
 end
 
 local _ENV = TEST_CASE('WCS ffi')
-if not prequire"ffi" then test = skip"ffi module not found" else 
+if not prequire"ffi" then test = SKIP_CASE"ffi module not found" else 
 
 local wcs
 
@@ -102,7 +109,7 @@ function test() self_test(wcs) end
 end
 
 local _ENV = TEST_CASE('WCS alien')
-if not prequire"alien" then test = skip"alien module not found" else 
+if not prequire"alien" then test = SKIP_CASE"alien module not found" else 
 
 local wcs
 
