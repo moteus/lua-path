@@ -39,6 +39,11 @@ _M.rmdir = lfs.rmdir
 _M.chdir = lfs.chdir
 
 function _M.copy(src, dst, force)
+  if not IS_WINDOWS then
+    if _M.isdir(src) or _M.isdir(dst) then
+      return nil, 'can not copy directories'
+    end
+  end
   local f, err = io.open(src, 'rb')
   if not f then return nil, err end
 
@@ -81,10 +86,19 @@ function _M.move(src, dst, flags)
     -- if not ok then ok, err = _M.rmdir(dst) end
     if not ok then return nil, err end
   end
+  if (not IS_WINDOWS) and _M.exists(dst) then
+    -- on windows os.rename return error when dst exists, 
+    -- but on linux its just replace existed file
+    return nil, "destination alredy exists"
+  end
   return os.rename(src, dst)
 end
 
 function _M.remove(P)
+  -- on windows os.remove can not remove dir
+  if (not IS_WINDOWS) and _M.isdir(P) then
+    return nil, "remove method can not remove dirs"
+  end
   return os.remove(P)
 end
 
