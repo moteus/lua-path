@@ -184,17 +184,7 @@ local function prequire(m)
   return err
 end
 
-local fs 
-
-if not fs and IS_WINDOWS then
-  local fsload = require"path.win32.fs".load
-  local ok, mod = pcall(fsload, "ffi", "A") or pcall(fsload, "alien", "A")
-  fs = ok and mod
-end
-
-if not fs then
-  fs = prequire"path.lfs.fs"
-end
+local fs = prequire "path.fs"
 
 if fs then
 

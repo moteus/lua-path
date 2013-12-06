@@ -26,6 +26,7 @@ build = {
   },
   modules = {
     ["path"                   ] = "lua/path.lua",
+    ["path.fs"                ] = "lua/path/fs.lua",
     ["path.findfile"          ] = "lua/path/findfile.lua",
     ["path.lfs.fs"            ] = "lua/path/lfs/fs.lua",
     ["path.module"            ] = "lua/path/module.lua",
