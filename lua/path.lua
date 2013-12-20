@@ -62,7 +62,7 @@ function PATH:normolize(P)
     local n P,n = string.gsub(P, DIR_SEP .. '%.' .. DIR_SEP, DIR_SEP)
     if n == 0 then break end
   end
-  while true do -- `/` => `/`
+  while true do -- `//` => `/`
     local n P,n = string.gsub(P, DIR_SEP .. DIR_SEP, DIR_SEP)
     if n == 0 then break end
   end
@@ -118,7 +118,13 @@ end
 function PATH:join(...)
   local t,n = {...}, select('#', ...)
   local r = t[1]
-  for i = 2, #t do r = self:join_(r,t[i]) end
+  for i = 2, #t do
+    if self:isfullpath(t[i]) then
+      r = t[i]
+    else
+      r = self:join_(r,t[i])
+    end
+  end
   return r
 end
 

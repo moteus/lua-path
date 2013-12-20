@@ -451,7 +451,7 @@ function _M.size(u, P)
 end
 
 local function file_not_found(err)
-  return (err == CONST.ERROR_FILE_NOT_FOUND) or (err == CONS.ERROR_PATH_NOT_FOUND)
+  return (err == CONST.ERROR_FILE_NOT_FOUND) or (err == CONST.ERROR_PATH_NOT_FOUND)
 end
 
 function _M.exists(u, P)
