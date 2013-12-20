@@ -108,18 +108,22 @@ function test_splitext()
   local root, ext = path.splitext(".log")
   assert_equal(".log", root)
   assert_equal("", ext)
+  assert_equal(ext, path.extension(".log"))
 
   root, ext = path.splitext("test/.log")
   assert_equal("test/.log", root)
   assert_equal("", ext)
+  assert_equal(ext, path.extension("test/.log"))
 
   root, ext = path.splitext("test/1.log")
   assert_equal("test/1", root)
   assert_equal(".log", ext)
+  assert_equal(ext, path.extension("test/1.log"))
 
   root, ext = path.splitext("test/.1.log")
   assert_equal("test/.1", root)
   assert_equal(".log", ext)
+  assert_equal(ext, path.extension("test/.1.log"))
 end
 
 function test_norm()
