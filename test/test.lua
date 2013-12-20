@@ -42,9 +42,9 @@ local _ENV = TEST_CASE('PATH manipulation') if true then
 local function testpath(pth,p1,p2,p3)
   local dir,rest = path.splitpath(pth)
   local name,ext = path.splitext(rest)
-  assert_equal(dir,p1)
-  assert_equal(name,p2)
-  assert_equal(ext,p3)
+  assert_equal(p1, dir )
+  assert_equal(p2, name)
+  assert_equal(p3, ext )
 end
 
 function test_penlight_1()
@@ -99,10 +99,27 @@ function test_split()
 end
 
 function test_splitext()
-  testpath ('.log','','','.log')
+  testpath ('.log','','.log','')
+  testpath ('path/.log','path','.log','')
   testpath ('log','','log','')
   testpath ('.log/','.log','','')
   testpath ('.1001.log','','.1001','.log')
+  
+  local root, ext = path.splitext(".log")
+  assert_equal(".log", root)
+  assert_equal("", ext)
+
+  root, ext = path.splitext("test/.log")
+  assert_equal("test/.log", root)
+  assert_equal("", ext)
+
+  root, ext = path.splitext("test/1.log")
+  assert_equal("test/1", root)
+  assert_equal(".log", ext)
+
+  root, ext = path.splitext("test/.1.log")
+  assert_equal("test/.1", root)
+  assert_equal(".log", ext)
 end
 
 function test_norm()
@@ -168,7 +185,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH system error') if false then
+local _ENV = TEST_CASE('PATH system error') if true then
 
 function test()
   local path = path.IS_WINDOWS and path_unx or path_win
@@ -178,7 +195,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH fullpath')     if false then
+local _ENV = TEST_CASE('PATH fullpath')     if true then
 
 function test_user_home()
   local p = assert_string(path.user_home())
@@ -197,7 +214,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH make dir')     if false then
+local _ENV = TEST_CASE('PATH make dir')     if true then
 
 local cwd
 
@@ -240,7 +257,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH findfile')     if false then
+local _ENV = TEST_CASE('PATH findfile')     if true then
 
 local cwd, files, dirs
 
@@ -377,7 +394,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH rename')       if false then
+local _ENV = TEST_CASE('PATH rename')       if true then
 
 local cwd
 
@@ -457,7 +474,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH chdir')        if false then
+local _ENV = TEST_CASE('PATH chdir')        if true then
 
 local cwd
 
@@ -483,7 +500,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH copy')         if false then
+local _ENV = TEST_CASE('PATH copy')         if true then
 
 local cwd, files
 
@@ -661,7 +678,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH clean dir')    if false then
+local _ENV = TEST_CASE('PATH clean dir')    if true then
 
 local cwd
 
@@ -779,7 +796,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH each mask')    if false then
+local _ENV = TEST_CASE('PATH each mask')    if true then
 
 local cwd, J
 
