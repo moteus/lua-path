@@ -20,7 +20,7 @@
 
 local path = {}
 
---- ???
+--- The path separator.
 --
 path.DIR_SEP    = DIR_SEP
 
@@ -31,67 +31,80 @@ path.IS_WINDOWS = IS_WINDOWS
 --
 -- PATH manipulation 
 
----
+--- Unquote path
 -- @local
 function path.unquote(P)end
 
---- ???
+--- Quote path
 -- @local
 function path.quote(P)end
 
---- ???
+--- Returns true if path has trailing path name separator. 
 --
 function path.has_dir_end(P)end
 
---- ???
+--- Removes the path name separator from the end of path, if it has it.
 --
 function path.remove_dir_end(P)end
 
---- ???
+--- Appends a path name separator to path if one does not exist.
 --
 function path.ensure_dir_end(P)end
 
---- ???
+--- Converts forward and backward slashes to @DIR_SEP
 -- @local
 function path.normolize_sep(P) end
 
---- ???
---
+--- Normalize a path.
+-- This function normolize path name separators and collaps
+-- redundant separators and up-level references.
+-- E.g. `/a/fred/../b`, `/a//b`,`/a\\b`, `/a/./b` all normolize to `/a/b`
+-- 
 function path.normolize(P) end
 
---- ???
+--- Join one or more path components.
+-- If any component is an absolute path, all previous components
+-- are thrown away, and joining continues.
+-- If last parameter is empty string then result path will 
+-- have trailing path name separator.
 --
 function path.join(...)end
 
---- ???
---
+--- Split the path into root and extension.
+-- If there no extension then returns empty string as extension.
+-- If basename starts with dot then 
+-- @usage path.splitext("/some/file.txt") --> "/some/path", ".txt"
+-- @usage path.splitext("/some/.passwords") --> "/some/.passwords", ""
+-- @usage path.splitext("/some/.file.passwords") --> "/some/.file", ".passwords"
 function path.splitext(P) end
 
---- ???
+--- Split the path into dirname and basename.
 --
 function path.splitpath(P)end
 
---- ???
+--- Split first path part for absolute path.
 --
 function path.splitroot(P)end
 
---- ???
+--- Return the base name of path.
 --
 function path.basename(P)end
 
---- ???
+--- Return the directory name of path.
 --
 function path.dirname(P)end
 
---- ???
+--- Return the extension of path.
 --
 function path.extension(P)end
 
---- ???
+--- Return first path part for absolute path.
+-- On Windows this is drive letter (e.g. "c:\\some\path" => "c:").
+-- On *nix this is first directory name (e.g. "/usr/etc" => "/usr").
 --
 function path.root(P)end
 
---- ???
+--- Return `true` if path contain root part.
 --
 function path.isfullpath(P)end
 
@@ -104,133 +117,223 @@ function path.isfullpath(P)end
 function path.user_home()end
 
 --- Return file attributes.
+-- On Windows it is result of GetFileAttributesEx.
 --
--- On Windows it is result of GetFileAttributesEx
 -- <br/>depends on `path.fs`
 function path.flags(P)end
 
 --- Return path to temp directory.
 -- On Windows can use GetTempPath if Alien/FFI/afx have been found
 -- On Windows use TMP/TEMP environment variables
+--
 -- <br/>depends on `path.fs`
 function path.tmpdir() end
 
 --- Return full path for temp file.
+--
 -- <br/>depends on `path.fs`
 function path.tmpname()end
 
---- ???
+--- Return size in bytes for file.
 -- <br/>depends on `path.fs`
 function path.size(P)end
 
 
---- ???
+--- Return full normolized path.
+--
 -- <br/>depends on `path.fs`
 function path.fullpath(P)end
 
---- ???
+--- Return file attributes.
+--
 -- @local
 -- <br/>depends on `path.fs`
 function path.attrib(P, ...)end
 
---- ???
+--- Return path if path existing in file system. 
+--
 -- <br/>depends on `path.fs`
 function path.exists(P)end
 
---- ???
+--- Return path if path refers to an existing directory.
+--
 -- <br/>depends on `path.fs`
 function path.isdir(P)end
 
---- ???
+--- Return path if path refers to an existing file.
+--
 -- <br/>depends on `path.fs`
 function path.isfile(P)end
 
---- ???
+--- Return path if path refers to an existing symbolic link.
+--
 -- <br/>depends on `path.fs`
 function path.islink(P)end
 
---- Return true if directory is empty
+--- Return true if directory is empty.
+--
 -- <br/>depends on `path.fs`
 function path.isempty(P)end
 
---- ???
+--- Return creation file time.
+-- On *nix this is the time of the last metadata change.
+--
 -- <br/>depends on `path.fs`
 function path.ctime(P)end
 
---- ???
+--- Return last modification file time.
+--
 -- <br/>depends on `path.fs`
 function path.mtime(P)end
 
---- ???
+--- Return last access file time.
+--
 -- <br/>depends on `path.fs`
 function path.atime(P)end
 
---- ???
+--- Return `path.ctime` as `date` object.
+--
 -- <br/>depends on `path.fs` and LuaDate
 function path.cdate(P)end
 
---- ???
+--- Return `path.mtime` as `date` object.
+--
 -- <br/>depends on `path.fs` and LuaDate
 function path.mdate(P)end
 
---- ???
+--- Return `path.atime` as `date` object.
+--
 -- <br/>depends on `path.fs` and LuaDate
 function path.adate(P)end
 
 --- Create new directory.
+-- This function also creates all nested directories if needed.
+--
 -- <br/>depends on `path.fs`
 function path.mkdir(P)end
 
 --- Remove empty directory.
+--
 -- <br/>depends on `path.fs`
 function path.rmdir(P)end
 
 --- Remove empty directory or file.
+--
 -- @tparam string P 
 -- @tparam ?remove_opt opt
 -- <br/>depends on `path.fs`
 function path.remove(P, opt)end
 
---- ???
+--- Rename existed file.
+--
 -- <br/>depends on `path.fs`
 function path.rename(from,to,force)end
 
---- ???
+--- Copy file or directory tree.
+--
 -- @tparam string from
 -- @tparam string to
 -- @tparam ?copy_opt|boolean opt
 -- <br/>depends on `path.fs`
 function path.copy(from,to,opt)end
 
---- ???
+--- Return current work directory path.
+--
 -- <br/>depends on `path.fs`
 function path.currentdir()end
 
---- ???
+--- Change current work directory path.
+--
 -- <br/>depends on `path.fs`
 function path.chdir(P)end
 
---- ???
+--- Iterate over directory tree.
+--
 -- <br/>depends on `path.fs`
+--
+-- @usage -- clean currentdir
+-- path.each("./*", "f", path.remove, {
+--   delay = true;   -- use snapshot of directory
+--   recurse = true; -- include subdirs
+--   reverse = true; -- subdirs at first 
+-- })
+--
+-- @usage -- clean only files in currentdir
+-- path.each("./*", "f", path.remove, {skipdirs = true; delay = true})
+--
+-- @see path.fs.each
+-- @see path.fs.each_options
+--
 function path.each(str_file, str_params, func_callback, tbl_option)end
 
---- ???
+--- Iterate over directory tree.
+--
 -- <br/>depends on `path.fs`
+--
+-- @usage -- clean currentdir
+-- for fullpath in path.each("./*", "f", {
+--   delay = true;   -- use snapshot of directory
+--   recurse = true; -- include subdirs
+--   reverse = true; -- subdirs at first 
+-- })do path.remove(fullpath) end
+--
+-- @see path.fs.each
+-- @see path.fs.each_options
+--
 function path.each(str_file, str_params, tbl_option)end
 
---- ???
+--- Iterate over directory tree.
+--
 -- <br/>depends on `path.fs`
+--
+-- @usage -- clean currentdir. for example we also retreave file mode
+-- path.each("./*", function(P, mode)
+--   if mode == 'directory' then 
+--     path.rmdir(P)
+--   else
+--     path.remove(P)
+--   end
+-- end,{
+--   param = "fm";   -- request full path and mode
+--   delay = true;   -- use snapshot of directory
+--   recurse = true; -- include subdirs
+--   reverse = true; -- subdirs at first 
+-- })
+--
+-- @see path.fs.each
+-- @see path.fs.each_options
+--
 function path.each(str_file, func_callback, tbl_option)end
 
---- ???
+--- Iterate over directory tree.
+-- This is common version of function.
+--
 -- <br/>depends on `path.fs`
+--
+-- @usage -- clean currentdir
+-- path.each("./*", {
+--   callback = path.remove,
+--   param = "f";    -- request full path
+--   delay = true;   -- use snapshot of directory
+--   recurse = true; -- include subdirs
+--   reverse = true; -- subdirs at first 
+-- })
+--
+-- @see path.fs.each
+-- @see path.fs.each_options
+--
 function path.each(str_file, tbl_option)end
 
---- ???
+--- Iterate over directory tree.
+--
 -- <br/>depends on `path.fs`
+--
+-- @see path.fs.each
+-- @see path.fs.each_options
+--
 function path.each(func_callback, tbl_option)end
 
---- ???
+--- Option table for `path.copy` function.
 --
 -- @table copy_opt
 -- @tfield[opt=false] boolean delay    
@@ -241,7 +344,7 @@ function path.each(func_callback, tbl_option)end
 -- @tfield[opt=function(err, src, dst) return true end] callable error 
 -- @see path.fs.each_options
 
---- ???
+--- Option table for `path.remove` function.
 --
 -- @table remove_opt
 -- @tfield[opt=true] boolean delay    

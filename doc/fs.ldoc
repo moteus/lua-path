@@ -1,9 +1,9 @@
 ---
--- @module path.fs
 --
 -- This is lowlevel module which implement 
 -- system dependent operation.
 -- <br/> Can use LuaFileSystem or alien/ffi on Windows
+-- @module path.fs
 
 local fs = {}
 

@@ -1,5 +1,8 @@
 [![Build Status](https://travis-ci.org/moteus/lua-path.png?branch=master)](https://travis-ci.org/moteus/lua-path)
 
+###Documentation
+[Dcumentation](http://moteus.github.io/path/index.html)
+
 Usage:
 ```lua
 local PATH = require "path"
