@@ -82,9 +82,18 @@ function path.splitext(P) end
 --
 function path.splitpath(P)end
 
+--- Alias to @{splitpath}.
+--
+function path.split(P)end
+
 --- Split first path part for absolute path.
 --
 function path.splitroot(P)end
+
+--- Split path into drive specification and path.
+--
+-- On non Windows systems drive always empty string.
+function path.splitdrive(P)end
 
 --- Return the base name of path.
 --
@@ -108,6 +117,9 @@ function path.root(P)end
 --
 function path.isfullpath(P)end
 
+--- Alias to @{isfullpath}
+--
+function path.isabs(P)end
 
 --
 -- FS manipulation
@@ -139,10 +151,18 @@ function path.tmpname()end
 -- <br/>depends on `path.fs`
 function path.size(P)end
 
+--- Alias to @{size}
+--
+function path.getsize(P)end
+
 --- Return full normolized path.
 --
 -- <br/>depends on `path.fs`
 function path.fullpath(P)end
+
+--- Alias to @{fullpath}.
+--
+function path.abspath(P)end
 
 --- Return file attributes.
 --
@@ -205,6 +225,18 @@ function path.mdate(P)end
 --
 -- <br/>depends on `path.fs` and LuaDate
 function path.adate(P)end
+
+--- Alias to @{ctime}
+--
+function path.getctime(P)end
+
+--- Alias to @{mtime}
+--
+function path.getmtime(P)end
+
+--- Alias to @{atime}
+--
+function path.getatime(P)end
 
 --- Create new directory.
 -- This function also creates all nested directories if needed.

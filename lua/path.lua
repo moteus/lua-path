@@ -155,6 +155,13 @@ function PATH:splitroot(P)
   end
 end
 
+function PATH:splitdrive(P)
+  if self.IS_WINDOWS then
+    return self:splitroot(P)
+  end
+  return '', P
+end
+
 function PATH:basename(P)
   local s1,s2 = self:splitpath(P)
   return s2
@@ -483,6 +490,17 @@ function PATH:remove(P, opt)
 end
 
 end -- fs 
+
+do -- Python aliases
+PATH.split    = PATH.splitext
+PATH.isabs    = PATH.isfullpath
+PATH.normpath = PATH.normolize
+PATH.abspath  = PATH.fullpath
+PATH.getctime = PATH.ctime
+PATH.getatime = PATH.atime
+PATH.getmtime = PATH.mtime
+PATH.getsize  = PATH.size
+end
 
 local function make_module()
   local M = require "path.module"

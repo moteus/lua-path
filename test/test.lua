@@ -126,6 +126,15 @@ function test_splitext()
   assert_equal(ext, path.extension("test/.1.log"))
 end
 
+function test_splitdrive()
+  local a, b
+  a,b = path_unx:splitdrive('/root/etc')
+  assert_equal('', a) assert_equal('/root/etc', b)
+
+  a,b = path_win:splitdrive('c:\\root\\etc')
+  assert_equal('c:', a) assert_equal('root\\etc', b)
+end
+
 function test_norm()
   assert_equal("..\\hello",       path_win:normolize("..\\hello"))
   assert_equal("..\\hello",       path_win:normolize("..\\hello\\world\\.."))
