@@ -1,4 +1,4 @@
 return{
   _NAME = "PATH lua library";
-  _VERSION = nil;
+  _VERSION = "0.2.0";
 }
