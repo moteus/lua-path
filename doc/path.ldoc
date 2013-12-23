@@ -135,9 +135,9 @@ function path.tmpdir() end
 function path.tmpname()end
 
 --- Return size in bytes for file.
+--
 -- <br/>depends on `path.fs`
 function path.size(P)end
-
 
 --- Return full normolized path.
 --
@@ -150,7 +150,7 @@ function path.fullpath(P)end
 -- <br/>depends on `path.fs`
 function path.attrib(P, ...)end
 
---- Return path if path existing in file system. 
+--- Return path if path existing in file system.
 --
 -- <br/>depends on `path.fs`
 function path.exists(P)end
@@ -217,7 +217,7 @@ function path.mkdir(P)end
 -- <br/>depends on `path.fs`
 function path.rmdir(P)end
 
---- Remove empty directory or file.
+--- Remove file or empty directory.
 --
 -- @tparam string P 
 -- @tparam ?remove_opt opt
