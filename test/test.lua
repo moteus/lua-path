@@ -205,8 +205,8 @@ function test()
   assert_boolean(path.IS_WINDOWS)
   assert_boolean(p.IS_WINDOWS)
   assert_not_equal(path.IS_WINDOWS, p.IS_WINDOWS)
-  assert_error(function() p.mkdir('./1') end)
-  assert_error(function() p.size('./1.txt') end)
+  assert_error(function() p:mkdir('./1') end)
+  assert_error(function() p:size('./1.txt') end)
 end
 
 end
