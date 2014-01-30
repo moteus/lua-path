@@ -16,6 +16,13 @@ if not fs and IS_WINDOWS then
   fs = ok and mod
 end
 
+if not fs and not IS_WINDOWS then
+  local lfs = prequire"syscall.lfs"
+  if lfs then
+    pcall(function() fs = require"path.lfs.impl.fs"(lfs) end)
+  end
+end
+
 if not fs then
   fs = prequire"path.lfs.fs"
 end

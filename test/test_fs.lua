@@ -1086,6 +1086,17 @@ if IS_WINDOWS then
     fs  = require"path.win32.fs".load("ffi", "W")
     CREATE_TEST("ffiW")
   end
+else
+
+  if not prequire"syscall.lfs" then 
+    local _ENV = TEST_CASE("syscall.lfs.fs")
+    test = SKIP_CASE"lfs module not found"
+  else
+    _T, _t = pass_thrue,pass_thrue
+    fs = require"path.lfs.impl.fs"(require"syscall.lfs")
+    CREATE_TEST("syscall.lfs")
+  end
+
 end
 
 end

@@ -33,6 +33,9 @@ install:
   - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec
   - sudo luarocks install luafilesystem
   - sudo luarocks make rockspecs/lua-path-scm-0.rockspec
+  - if [ $LUA = "luajit" ]; then
+      sudo luarocks install https://raw.github.com/justincormack/ljsyscall/master/rockspec/ljsyscall-scm-1.rockspec;
+    fi
 
 script: 
   - cd test
