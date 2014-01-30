@@ -201,9 +201,12 @@ end
 local _ENV = TEST_CASE('PATH system error') if true then
 
 function test()
-  local path = path.IS_WINDOWS and path_unx or path_win
-  assert_error(function() path.mkdir('./1') end)
-  assert_error(function() path.size('./1.txt') end)
+  local p = path.IS_WINDOWS and path_unx or path_win
+  assert_boolean(path.IS_WINDOWS)
+  assert_boolean(p.IS_WINDOWS)
+  assert_not_equal(path.IS_WINDOWS, p.IS_WINDOWS)
+  assert_error(function() p.mkdir('./1') end)
+  assert_error(function() p.size('./1.txt') end)
 end
 
 end
