@@ -1088,13 +1088,13 @@ if IS_WINDOWS then
   end
 else
 
-  if not prequire"syscall.lfs" then 
-    local _ENV = TEST_CASE("syscall.lfs.fs")
-    test = SKIP_CASE"lfs module not found"
+  if not prequire"path.syscall.fs" then 
+    local _ENV = TEST_CASE("syscall.fs")
+    test = SKIP_CASE"syscall module not found"
   else
     _T, _t = pass_thrue,pass_thrue
-    fs = require"path.lfs.impl.fs"(require"syscall.lfs")
-    CREATE_TEST("syscall.lfs")
+    fs = require"path.syscall.fs"
+    CREATE_TEST("syscall.fs")
   end
 
 end

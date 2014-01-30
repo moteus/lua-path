@@ -29,6 +29,7 @@ build = {
     ["path.fs"                ] = "lua/path/fs.lua",
     ["path.findfile"          ] = "lua/path/findfile.lua",
     ["path.lfs.fs"            ] = "lua/path/lfs/fs.lua",
+    ["path.syscall.fs"        ] = "lua/path/syscall/fs.lua",
     ["path.lfs.impl.fs"       ] = "lua/path/lfs/impl/fs.lua",
     ["path.module"            ] = "lua/path/module.lua",
     ["path.win32.alien.fs"    ] = "lua/path/win32/alien/fs.lua",

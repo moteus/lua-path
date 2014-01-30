@@ -192,7 +192,7 @@ if not prequire"lfs" then test = SKIP_CASE"lfs module not found" else
 end
 
 local _ENV = TEST_CASE('each ffi')
-if not ISW then test = SKIP_CASE"ffi support only on Windwos" 
+if not ISW then test = SKIP_CASE"ffi support only on Windows" 
 elseif not prequire"ffi" then test = SKIP_CASE"ffi module not found" else
   make_test(_M or _ENV, {
     get_findfile = function() 
@@ -202,12 +202,20 @@ elseif not prequire"ffi" then test = SKIP_CASE"ffi module not found" else
 end
 
 local _ENV = TEST_CASE('each alien')
-if not ISW then test = SKIP_CASE"alien support only on Windwos" 
+if not ISW then test = SKIP_CASE"alien support only on Windows" 
 elseif not prequire"alien" then test = SKIP_CASE"alien module not found" else
   make_test(_M or _ENV, {
     get_findfile = function() 
       return require "path.win32.fs".load("alien", "A").each_impl
     end;
+  })
+end
+
+local _ENV = TEST_CASE('each syscall')
+if ISW then test = SKIP_CASE"syscall support only on non Windows" 
+elseif not prequire"path.syscall.fs" then test = SKIP_CASE"syscall module not found" else
+  make_test(_M or _ENV, {
+    get_findfile = function() return require "path.syscall.fs".each_impl end;
   })
 end
 
