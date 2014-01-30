@@ -7,7 +7,7 @@ local function prequire(m)
   return err
 end
 
-local fs 
+local fs
 
 if not fs and IS_WINDOWS then
   local fsload = require"path.win32.fs".load
@@ -17,10 +17,7 @@ if not fs and IS_WINDOWS then
 end
 
 if not fs and not IS_WINDOWS then
-  local lfs = prequire"syscall.lfs"
-  if lfs then
-    pcall(function() fs = require"path.lfs.impl.fs"(lfs) end)
-  end
+  fs = prequire"path.syscall.fs"
 end
 
 if not fs then
