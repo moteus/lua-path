@@ -527,20 +527,35 @@ function _M.tmpdir(u)
   return u.GetTempPath()
 end
 
+function _M.link()
+  return nil, "make_link is not supported on Windows";
+end
+
+function _M.setmode()
+  return nil, "setmode is not supported by this implementation";
+end
+
 function _M.dir(u, P)
   local h, fd = u.FindFirstFile(P .. u.DIR_SEP .. u.ANY_MASK)
   assert(h, fd)
+  local closed = false
   local obj = {
     close = function(self)
       if not h then return end
       u.FindClose(h)
-      h = nil
+      h, closed = nil, true
     end;
     next  = function(self)
-      if not h then return end
+      if not h then
+        if not closed then
+          closed = true
+          return
+        end
+        error("calling 'next' on bad self (closed directory)", 2)
+      end
       local fname = u.WIN32_FIND_DATA2TABLE(fd).cFileName
       local ret, err = u.FindNextFile(h, fd)
-      if ret == 0 then self:close() end
+      if ret == 0 then self:close() closed = false end
       return fname
     end
   }

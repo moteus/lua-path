@@ -38,6 +38,10 @@ _M.rmdir = lfs.rmdir
 
 _M.chdir = lfs.chdir
 
+_M.link  = lfs.link
+
+_M.setmode = lfs.setmode
+
 function _M.copy(src, dst, force)
   if not IS_WINDOWS then
     if _M.isdir(src) or _M.isdir(dst) then
