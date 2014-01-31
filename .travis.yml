@@ -40,6 +40,7 @@ install:
 script: 
   - cd test
   - lunit.sh -i lua$LUA_SFX run.lua
+  - lua$LUA_SFX test_lfs.lua
 
 notifications:
   email:

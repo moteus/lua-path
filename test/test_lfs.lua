@@ -14,7 +14,7 @@ local tmp = "/tmp"
 local sep = string.match (package.config, "[^\n]+")
 local upper = ".."
 
-print (name, lfs._VERSION)
+print (name)
 
 io.write(".")
 io.flush()
@@ -200,4 +200,14 @@ if IS_WINDOWS then
     local lfs = require"path.win32.fs".load("ffi", "A")
     run_test("lfs.ffiA", lfs)
   end
+else
+  if prequire"path.syscall.fs" then
+    local lfs = prequire"path.syscall.fs"
+    run_test("lfs.syscall", lfs)
+  end
+end
+
+if prequire"path.lfs.fs" then
+  local lfs = prequire"path.lfs.fs"
+  run_test("lfs.lfs", lfs)
 end
