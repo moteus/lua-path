@@ -1,0 +1,12 @@
+name = "lua-path"
+version = "0.2.0"
+
+desc = "File system path manipulation library"
+author = "Alexey Melnichuk"
+license = "MIT/X11"
+url = "https://github.com/moteus/lua-path"
+maintainer = "Alexey Melnichuk"
+
+depends = {
+  "lua >= 5.1"
+}

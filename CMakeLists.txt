@@ -1,0 +1,26 @@
+cmake_minimum_required ( VERSION 2.8 )
+
+project ( lua-path NONE )
+include ( cmake/dist.cmake )
+include ( lua )
+
+install_lua_module ( path                   lua/path.lua                    )
+install_lua_module ( path.fs                lua/path/fs.lua                 )
+install_lua_module ( path.findfile          lua/path/findfile.lua           )
+install_lua_module ( path.lfs.fs            lua/path/lfs/fs.lua             )
+install_lua_module ( path.syscall.fs        lua/path/syscall/fs.lua         )
+install_lua_module ( path.lfs.impl.fs       lua/path/lfs/impl/fs.lua        )
+install_lua_module ( path.module            lua/path/module.lua             )
+install_lua_module ( path.win32.alien.fs    lua/path/win32/alien/fs.lua     )
+install_lua_module ( path.win32.alien.types lua/path/win32/alien/types.lua  )
+install_lua_module ( path.win32.alien.utils lua/path/win32/alien/utils.lua  )
+install_lua_module ( path.win32.alien.wcs   lua/path/win32/alien/wcs.lua    )
+install_lua_module ( path.win32.ffi.fs      lua/path/win32/ffi/fs.lua       )
+install_lua_module ( path.win32.ffi.types   lua/path/win32/ffi/types.lua    )
+install_lua_module ( path.win32.ffi.wcs     lua/path/win32/ffi/wcs.lua      )
+install_lua_module ( path.win32.fs          lua/path/win32/fs.lua           )
+install_lua_module ( path.win32.wcs         lua/path/win32/wcs.lua          )
+
+install_data ( README.md LICENCE.txt )
+
+install_test ( test/ )
