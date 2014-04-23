@@ -480,7 +480,7 @@ function _M.isfile(u, P)
     return nil, err
   end
   if TestBit(fd.dwFileAttributes, CONST.FILE_ATTRIBUTE_REPARSE_POINT) then return false end
-  return (not islink) and (not TestBit(fd.dwFileAttributes, CONST.FILE_ATTRIBUTE_DIRECTORY)) and P
+  return (not TestBit(fd.dwFileAttributes, CONST.FILE_ATTRIBUTE_DIRECTORY)) and P
 end
 
 function _M.islink(u, P)
@@ -639,7 +639,7 @@ foreach_impl = function (u, base, mask, callback, option)
     end;
   end
 
-  local ok, ret = findfile(u, path .. mask, function(fd)
+  local ok, err = findfile(u, path .. mask, function(fd)
     local isdir = TestBit(fd.dwFileAttributes, CONST.FILE_ATTRIBUTE_DIRECTORY)
     if isdir then if option.skipdirs then return end
     else if option.skipfiles then return end end

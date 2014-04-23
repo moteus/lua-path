@@ -304,7 +304,7 @@ local function DiskNumber(u, P)
     NULL, 0, Info, Info_size
   )
   if not ret then err = dwTmp end
-  if dwTmp ~= Info_size then ret, err = nil, GetLastError() end
+  if dwTmp ~= Info_size then ret, err = nil, C.GetLastError() end
 
   CloseHandle(hPart)
   if not ret then return nil, err end

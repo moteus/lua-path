@@ -93,9 +93,9 @@ local function WideCharToMultiByte(src, cp)
       end
     end
   end
-  dst    = alien.buffer(1)
+  local dst = alien.buffer(1)
   dst[0] = 0
-  return dst,0
+  return dst, 0
 end
 
 local function LUA_M2W(src, ...)

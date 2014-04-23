@@ -86,7 +86,7 @@ local function WideCharToMultiByte(src, cp)
       end
     end
   end
-  dst    = ffi.new(achar_t, 1)
+  local dst = ffi.new(achar_t, 1)
   dst[0] = 0
   return dst,0
 end
