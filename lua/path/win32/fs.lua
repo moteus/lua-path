@@ -582,7 +582,13 @@ end
 
 local function findfile(u, P, cb)
   local h, fd = u.FindFirstFile(P)
-  if not h then return nil, fd end
+  if not h then
+    if (fd == CONST.ERROR_FILE_NOT_FOUND) or (fd == CONST.ERROR_PATH_NOT_FOUND) then
+      -- this is not error but just empty result
+      return
+    end
+    return nil, fd
+  end
   repeat
     local ret = cb(fd)
     if ret then

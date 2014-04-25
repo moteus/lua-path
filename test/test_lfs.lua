@@ -97,9 +97,11 @@ io.write(".")
 io.flush()
 
 -- Checking link (does not work on Windows)
-if lfs.link (tmpfile, "_a_link_for_test_", true) then
+if lfs.link and lfs.link (tmpfile, "_a_link_for_test_", true) then
   assert (lfs.attributes"_a_link_for_test_".mode == "file")
-  assert (lfs.symlinkattributes"_a_link_for_test_".mode == "link")
+  if lfs.symlinkattributes then
+    assert (lfs.symlinkattributes"_a_link_for_test_".mode == "link")
+  end
   assert (lfs.link (tmpfile, "_a_hard_link_for_test_"))
   assert (lfs.attributes (tmpfile, "nlink") == 2)
   assert (os.remove"_a_link_for_test_")
@@ -211,3 +213,5 @@ if prequire"path.lfs.fs" then
   local lfs = prequire"path.lfs.fs"
   run_test("lfs.lfs", lfs)
 end
+
+if not pass then os.exit(-1) end
