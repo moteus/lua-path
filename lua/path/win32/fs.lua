@@ -537,7 +537,15 @@ end
 
 function _M.dir(u, P)
   local h, fd = u.FindFirstFile(P .. u.DIR_SEP .. u.ANY_MASK)
-  assert(h, fd)
+  if not h then
+    local nop = function()end
+    if (fd == CONST.ERROR_FILE_NOT_FOUND) or (fd == CONST.ERROR_PATH_NOT_FOUND) then
+      -- this is not error but just empty result
+      return nop, {close = nop}
+    end
+    return function() return nil, fd end, {close = nop}
+  end
+
   local closed = false
   local obj = {
     close = function(self)
