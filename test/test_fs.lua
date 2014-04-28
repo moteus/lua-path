@@ -383,7 +383,11 @@ end
 
 function test_dir_not_existing_path()
   local path = J(base, _T"some", _T"nonexists", _T"path")
-  assert_pass(function() fs.dir(path) end)
+  if IS_WINDOWS then
+    assert_pass(function() fs.dir(path) end)
+  else
+    skip("LuaFileSystem generate error")
+  end
 end
 
 function test_each()

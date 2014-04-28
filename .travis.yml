@@ -36,11 +36,20 @@ install:
   - if [ $LUA = "luajit" ]; then
       sudo luarocks install https://raw.github.com/justincormack/ljsyscall/master/rockspec/ljsyscall-scm-1.rockspec;
     fi
+  - sudo luarocks install luajson
+  - sudo luarocks install luacov
 
 script: 
   - cd test
   - lunit.sh -i lua$LUA_SFX run.lua
   - lua$LUA_SFX test_lfs.lua
+
+after_success:
+  - cd $TRAVIS_BUILD_DIR
+  - cd test
+  - lua$LUA_SFX report_coverage.lua
+  - ls
+  - 'curl -v -H "Content-Type: multipart/related" --form "json_file=@luacov.report.out;type=application/json" https://coveralls.io/api/v1/jobs'
 
 notifications:
   email:

@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/moteus/lua-path.png?branch=master)](https://travis-ci.org/moteus/lua-path)
+[![Coverage Status](https://coveralls.io/repos/moteus/lua-path/badge.png)](https://coveralls.io/r/moteus/lua-path)
 
 ###Documentation
 [Dcumentation](http://moteus.github.io/path/index.html)
