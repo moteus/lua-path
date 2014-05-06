@@ -25,6 +25,8 @@ return {
   -- (exclude overrules include, do not include
   -- the .lua extension)
   ["include"] = {
+    "/path$",
+    "/path/.+$",
   },
 
   -- Patterns for files to exclude when reporting
@@ -32,15 +34,6 @@ return {
   -- (exclude overrules include, do not include
   -- the .lua extension)
   ["exclude"] = {
-    "luacov",
-    "lunit",
-    "date$",
-    "alien$",
-    "utils$",
-    "loader$",
-    "test",
-    "run$",
-    "syscall/lfs$"
   },
 
   -- configuration for luacov-coveralls reporter
