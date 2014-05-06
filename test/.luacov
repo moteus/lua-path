@@ -12,7 +12,7 @@ return {
   ["statsfile"] = "luacov.stats.out",
 
   -- filename to store report
-  ["reportfile"] = "luacov.report.out",
+  ["reportfile"] = "luacov.report.json",
 
   -- Run reporter on completion? (won't work for ticks)
   runreport = false,
@@ -32,20 +32,28 @@ return {
   -- (exclude overrules include, do not include
   -- the .lua extension)
   ["exclude"] = {
-    "luacov$",
-    "luacov%.reporter$",
-    "luacov%.defaults$",
-    "luacov%.runner$",
-    "luacov%.stats$",
-    "luacov%.tick$",
+    "luacov",
+    "lunit",
     "date$",
     "alien$",
     "utils$",
-    "lunit$",
-    "lunit%.console$",
     "loader$",
     "test",
+    "run$",
+    "syscall/lfs$"
   },
 
+  -- configuration for luacov-coveralls reporter
+  ["coveralls"] = {
+
+    ["debug"] = true,
+
+    ["pathcorrect"] = {
+      {"\\",                          "/"         };
+      {"/usr/local/share/lua/5.[12]", "lua"       };
+      {"^%./test",                    "test/test" };
+    },
+
+  },
 
 }
