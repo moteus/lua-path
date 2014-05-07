@@ -42,7 +42,7 @@ install:
 script: 
   - cd test
   - lunit.sh -i lua$LUA_SFX run.lua
-  - lua$LUA_SFX test_lfs.lua
+  - lua$LUA_SFX -lluacov test_lfs.lua
 
 after_success:
   - cd $TRAVIS_BUILD_DIR
