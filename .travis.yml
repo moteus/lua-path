@@ -36,7 +36,7 @@ install:
   - if [ $LUA = "luajit" ]; then
       sudo luarocks install https://raw.github.com/justincormack/ljsyscall/master/rockspec/ljsyscall-scm-1.rockspec;
     fi
-  - sudo luarocks install --only-server=http://luarocks.org/repositories/rocks-scm luacov scm
+  - sudo luarocks install https://raw.githubusercontent.com/moteus/luacov/moteus-rockspec/rockspecs/luacov-scm.mot-1.rockspec
   - sudo luarocks install https://raw.githubusercontent.com/moteus/luacov-coveralls/master/rockspecs/luacov-coveralls-scm-0.rockspec
 
 script: 
@@ -45,11 +45,8 @@ script:
   - lua$LUA_SFX -lluacov test_lfs.lua
 
 after_success:
-  - cd $TRAVIS_BUILD_DIR
-  - cd test
-  - lua$LUA_SFX report_coverage.lua
-  - ls
-  - 'curl -v -H "Content-Type: multipart/related" --form "json_file=@luacov.report.json;type=application/json" https://coveralls.io/api/v1/jobs'
+  - luacov-coveralls
+  - curl --form "json_file=@luacov.report.json;type=application/json" https://coveralls.io/api/v1/jobs
 
 notifications:
   email:
