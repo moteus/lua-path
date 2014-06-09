@@ -39,7 +39,7 @@ return {
   -- configuration for luacov-coveralls reporter
   ["coveralls"] = {
 
-    ["debug"] = true,
+    -- ["debug"] = true,
 
     ["pathcorrect"] = {
       {"\\",                          "/"         };

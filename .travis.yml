@@ -1,13 +1,12 @@
-language: erlang
+language: c
 
 env:
   global:
-    - PLATFORM=linux
-    - LUAROCKS_VER=2.2.0beta1
+    - LUAROCKS=2.2.0beta1
   matrix:
-    - LUA=lua5.1 LUA_SFX=
-    - LUA=lua5.2 LUA_SFX=
-    - LUA=luajit LUA_SFX=jit
+    - LUA=lua5.1
+    - LUA=lua5.2
+    - LUA=luajit
 
 branches:
   only:
@@ -27,12 +26,11 @@ install:
 
 script:
   - cd test
-  - lunit.sh -i lua$LUA_SFX run.lua
-  - lua$LUA_SFX -lluacov test_lfs.lua
+  - lunit.sh run.lua
+  - lua -lluacov test_lfs.lua
 
 after_success:
   - luacov-coveralls
-  - curl --form "json_file=@luacov.report.json;type=application/json" https://coveralls.io/api/v1/jobs
 
 notifications:
   email:
