@@ -16,7 +16,7 @@ before_install:
   - bash .travis/setup_lua.sh
   - sudo luarocks install luafilesystem
   - if [ $LUA = "luajit" ]; then
-      sudo luarocks install https://raw.github.com/justincormack/ljsyscall/master/rockspec/ljsyscall-scm-1.rockspec;
+      sudo luarocks install ljsyscall;
     fi
 
 install:
