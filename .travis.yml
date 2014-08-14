@@ -2,7 +2,7 @@ language: c
 
 env:
   global:
-    - LUAROCKS=2.2.0beta1
+    - LUAROCKS=2.2.0-rc1
   matrix:
     - LUA=lua5.1
     - LUA=lua5.2

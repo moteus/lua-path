@@ -3,28 +3,30 @@
 # A script for setting up environment for travis-ci testing.
 # Sets up Lua and Luarocks.
 # LUA must be "lua5.1", "lua5.2" or "luajit".
-# PLATFORM must be "linux" or "macosx".
+# luajit2.0 - master v2.0
+# luajit2.1 - master v2.1
 
 LUAJIT_BASE="LuaJIT-2.0.3"
 
-if [ -z "$PLATFORM" ]; then
-  PLATFORM=$TRAVIS_OS_NAME;
-fi
+source .travis/platform.sh
 
-if [ "$PLATFORM" == "osx" ]; then
-  PLATFORM="macosx";
-fi
+LUAJIT="no"
 
-if [ -z "$PLATFORM" ]; then
-  if [ "$(uname)" == "Linux" ]; then
-    PLATFORM="linux";
-  else
-    PLATFORM="macosx";
+if [ "$PLATFORM" == "macosx" ]; then
+  if [ "$LUA" == "luajit" ]; then
+    LUAJIT="yes";
+  fi
+  if [ "$LUA" == "luajit2.0" ]; then
+    LUAJIT="yes";
+  fi
+  if [ "$LUA" == "luajit2.1" ]; then
+    LUAJIT="yes";
   fi;
+elif [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
+  LUAJIT="yes";
 fi
 
-
-if [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
+if [ "$LUAJIT" == "yes" ]; then
 
   if [ "$LUA" == "luajit" ]; then
     curl http://luajit.org/download/$LUAJIT_BASE.tar.gz | tar xz;
@@ -61,8 +63,13 @@ fi
 cd $TRAVIS_BUILD_DIR;
 
 LUAROCKS_BASE=luarocks-$LUAROCKS
-curl http://luarocks.org/releases/$LUAROCKS_BASE.tar.gz | tar xz
-cd $LUAROCKS_BASE;
+
+# curl http://luarocks.org/releases/$LUAROCKS_BASE.tar.gz | tar xz
+
+git clone https://github.com/keplerproject/luarocks.git $LUAROCKS_BASE
+cd $LUAROCKS_BASE
+
+git checkout v$LUAROCKS
 
 if [ "$LUA" == "luajit" ]; then
   ./configure --lua-suffix=jit --with-lua-include=/usr/local/include/luajit-2.0;
@@ -80,7 +87,7 @@ cd $TRAVIS_BUILD_DIR
 
 rm -rf $LUAROCKS_BASE
 
-if [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
+if [ "$LUAJIT" == "yes" ]; then
   rm -rf $LUAJIT_BASE;
 elif [ "$LUA" == "lua5.1" ]; then
   rm -rf lua-5.1.5;
