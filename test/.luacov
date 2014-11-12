@@ -43,7 +43,7 @@ return {
 
     ["pathcorrect"] = {
       {"\\",                          "/"         };
-      {"/usr/local/share/lua/5.[12]", "lua"       };
+      {"/usr/local/share/lua/5.%d",   "lua"       };
       {"^%./test",                    "test/test" };
     },
 

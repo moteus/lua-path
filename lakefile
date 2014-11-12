@@ -2,7 +2,10 @@ PROJECT = 'path'
 
 J = J or path.join
 
-if LUA_VER == '5.2' then
+if LUA_VER == '5.3' then
+  LUA_DIR  = ENV.LUA_DIR_5_3 or ENV.LUA_DIR
+  LUA_RUNNER = 'lua53'
+elseif LUA_VER == '5.2' then
   LUA_DIR  = ENV.LUA_DIR_5_2 or ENV.LUA_DIR
   LUA_RUNNER = 'lua52'
 else

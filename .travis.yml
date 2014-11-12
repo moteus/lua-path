@@ -6,6 +6,7 @@ env:
   matrix:
     - LUA=lua5.1
     - LUA=lua5.2
+    - LUA=lua5.3
     - LUA=luajit
 
 branches:
@@ -21,11 +22,18 @@ before_install:
 
 install:
   - sudo luarocks make rockspecs/lua-path-scm-0.rockspec
-  - sudo luarocks install luacov-coveralls --server=http://rocks.moonscript.org/dev
-  - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec
+
+  - git clone https://github.com/moteus/luafilesystem.git luafilesystem
+  - cd ./luafilesystem
+  - sudo luarocks make rockspecs/luafilesystem-cvs-3.rockspec
+  - cd ..
+  - sudo luarocks install luacov-coveralls
+
+  - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec --deps-mode=none
 
 script:
   - cd test
+  - lua -lpath.lfs.fs -v
   - lunit.sh run.lua
   - lua -lluacov test_lfs.lua
 
