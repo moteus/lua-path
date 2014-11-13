@@ -24,7 +24,44 @@ local function prequire(...)
   return mod
 end
 
-local bit = assert(prequire("bit32") or prequire("bit"))
+local lua_version do
+
+local lua_version_t
+lua_version = function()
+  if not lua_version_t then 
+    local version = assert(_VERSION)
+    local maj, min = version:match("^Lua (%d+)%.(%d+)$")
+    if maj then                         lua_version_t = {tonumber(maj),tonumber(min)}
+    elseif math.type    then            lua_version_t = {5,3}
+    elseif not math.mod then            lua_version_t = {5,2}
+    elseif table.pack and not pack then lua_version_t = {5,2}
+    else                                lua_version_t = {5,2} end
+  end
+  return lua_version_t[1], lua_version_t[2]
+end
+
+end
+
+local LUA_MAJOR, LUA_MINOR = lua_version()
+
+local LUA_VER_NUM = LUA_MAJOR * 100 + LUA_MINOR
+
+local load_bit if LUA_VER_NUM < 503 then
+  load_bit = function()
+    return assert(prequire("bit32") or prequire("bit"))
+  end
+else
+  load_bit = function ()
+    local bit_loader = assert(load[[
+      return {
+        band = function(a, b) return a & b end;
+      }
+    ]])
+    return assert(bit_loader())
+  end
+end
+
+local bit = load_bit()
 
 local CONST = {
   GENERIC_READ                     = 0x80000000;
