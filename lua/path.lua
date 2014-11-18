@@ -492,7 +492,7 @@ end
 end -- fs 
 
 do -- Python aliases
-PATH.split    = PATH.splitext
+PATH.split    = PATH.splitpath
 PATH.isabs    = PATH.isfullpath
 PATH.normpath = PATH.normolize
 PATH.abspath  = PATH.fullpath
