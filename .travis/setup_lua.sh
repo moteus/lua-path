@@ -57,7 +57,7 @@ else
     curl http://www.lua.org/ftp/lua-5.2.3.tar.gz | tar xz
     cd lua-5.2.3;
   elif [ "$LUA" == "lua5.3" ]; then
-    curl http://www.lua.org/work/lua-5.3.0-rc0.tar.gz | tar xz
+    curl http://www.lua.org/ftp/lua-5.3.0.tar.gz | tar xz
     cd lua-5.3.0;
   fi
   sudo make $PLATFORM install;

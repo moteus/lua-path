@@ -15,25 +15,17 @@ branches:
 
 before_install:
   - bash .travis/setup_lua.sh
-  - sudo luarocks install luafilesystem
   - if [ $LUA = "luajit" ]; then
       sudo luarocks install ljsyscall;
     fi
-
-install:
-  - sudo luarocks make rockspecs/lua-path-scm-0.rockspec
-
-  - git clone https://github.com/moteus/luafilesystem.git luafilesystem
-  - cd ./luafilesystem
-  - sudo luarocks make rockspecs/luafilesystem-cvs-3.rockspec
-  - cd ..
+  - sudo luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
   - sudo luarocks install luacov-coveralls
 
+install:
   - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec --deps-mode=none
 
 script:
   - cd test
-  - lua -lpath.lfs.fs -v
   - lunit.sh run.lua
   - lua -lluacov test_lfs.lua
 
