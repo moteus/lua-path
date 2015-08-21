@@ -53,14 +53,14 @@ function path.ensure_dir_end(P)end
 
 --- Converts forward and backward slashes to @DIR_SEP
 -- @local
-function path.normolize_sep(P) end
+function path.normalize_sep(P) end
 
 --- Normalize a path.
--- This function normolize path name separators and collaps
+-- This function normalize path name separators and collaps
 -- redundant separators and up-level references.
--- E.g. `/a/fred/../b`, `/a//b`,`/a\\b`, `/a/./b` all normolize to `/a/b`
+-- E.g. `/a/fred/../b`, `/a//b`,`/a\\b`, `/a/./b` all normalize to `/a/b`
 -- 
-function path.normolize(P) end
+function path.normalize(P) end
 
 --- Join one or more path components.
 -- If any component is an absolute path, all previous components
@@ -155,7 +155,7 @@ function path.size(P)end
 --
 function path.getsize(P)end
 
---- Return full normolized path.
+--- Return full normalized path.
 --
 -- <br/>depends on `path.fs`
 function path.fullpath(P)end

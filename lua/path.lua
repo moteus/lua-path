@@ -1,4 +1,4 @@
-local pacakge = require "package"
+local package = require "package"
 local string  = require "string"
 local table   = require "table"
 local os      = require "os"
@@ -53,6 +53,8 @@ function PATH:normolize_sep(P)
   return (string.gsub(P, '\\', self.DIR_SEP):gsub('/', self.DIR_SEP))
 end
 
+PATH.normalize_sep = PATH.normolize_sep
+
 function PATH:normolize(P)
   P = self:normolize_sep(P)
   local DIR_SEP = self.DIR_SEP
@@ -106,6 +108,8 @@ function PATH:normolize(P)
   if (not self.IS_WINDOWS) and (P == DIR_SEP) then return '/' end
   return self:remove_dir_end(P)
 end
+
+PATH.normalize = PATH.normolize
 
 function PATH:join_(P1, P2)
   local ch = P2:sub(1,1)
