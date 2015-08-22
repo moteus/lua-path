@@ -7,14 +7,14 @@ end
 
 local lfs = prequire "lfs"
 
+prequire"luacov"
+
 print("------------------------------------")
 print("Lua version: " .. (_G.jit and _G.jit.version or _G._VERSION))
 print("LFS version: " .. (lfs and (lfs._VERSION or "(unknown)") or "(not found)")   )
 print("Is  Windows: " .. tostring(not not require"path".IS_WINDOWS))
 print("------------------------------------")
 print("")
-
-prequire"luacov"
 
 local HAS_RUNNER = not not lunit
 local lunit = require "lunit"
