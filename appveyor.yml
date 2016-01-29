@@ -51,6 +51,7 @@ install:
 
 before_build:
   - if "%LUA_VER%" EQU "5.1.5" (luarocks show bit32 || luarocks install bit32)
+  - if "%LUA_VER%" EQU "5.1.5" (luarocks show alien || luarocks install alien)
   - luarocks show luafilesystem || luarocks install luafilesystem
 
 build_script:
