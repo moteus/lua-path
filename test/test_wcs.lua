@@ -16,6 +16,13 @@ if not IS_WINDOWS then
   return
 end
 
+local BIN = function(...)
+  if not ... then return ... end
+  return (string.gsub(..., ".", function(ch)
+    return "\\" .. tostring(string.byte(ch))
+  end))
+end
+
 local function self_test(t, wcs)
   local assert = lunit.assert
   local assert_nil = lunit.assert_nil
@@ -34,25 +41,25 @@ local function self_test(t, wcs)
   t['test: should convert to OEM string'] = function()
     local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
     local res = "DemonicAngel"
-    assert_equal(res, wcs.wcstooem(str))
+    assert_equal(BIN(res), BIN(wcs.wcstooem(str)))
   end
 
   t['test: should convert to ANSI string'] = function()
     local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
     local res = "DemonicAngel"
-    assert_equal(res, wcs.wcstoansi(str))
+    assert_equal(BIN(res), BIN(wcs.wcstoansi(str)))
   end
 
   t['test: should convert from ANSI string'] = function()
     local str = "\68\235\109\243\241\236\231\196\241\103\233\108"
     local res = "\68\0\59\4\109\0\67\4\65\4\60\4\55\4\20\4\65\4\103\0\57\4\108\0"
-    assert_equal(res, wcs.ansitowcs(str))
+    assert_equal(BIN(res), BIN(wcs.ansitowcs(str)))
   end
 
   t['test: should convert from OEM string'] = function()
     local str = "\68\137\109\162\164\141\135\142\164\103\130\108"
     local res = "\68\0\25\4\109\0\50\4\52\4\29\4\23\4\30\4\52\4\103\0\18\4\108\0"
-    assert_equal(res, wcs.oemtowcs(str))
+    assert_equal(BIN(res), BIN(wcs.oemtowcs(str)))
   end
 
   -- iconv
@@ -94,11 +101,11 @@ local function self_test(t, wcs)
   .. "\0\97\0\110\0\100\0\111\0\32\0\80\0\101\0\115\0\115\0\111\0\97\0\10\0"
 
   t['test: should convert from UTF8 string'] = function()
-    assert_equal(utf16:sub(3), wcs.utf8towcs(utf8))         -- without bom
+    assert_equal(BIN(utf16:sub(3)), BIN(wcs.utf8towcs(utf8)))         -- without bom
   end
 
   t['test: should convert to UTF8 string'] = function()
-    assert_equal(utf8,         wcs.wcstoutf8(utf16:sub(3))) -- without bom
+    assert_equal(BIN(utf8),         BIN(wcs.wcstoutf8(utf16:sub(3)))) -- without bom
   end
 end
 
