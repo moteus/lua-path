@@ -1,29 +1,35 @@
 language: c
 
+sudo: false
+
 env:
   global:
-    - LUAROCKS=2.2.0
+    - LUAROCKS=2.3.0
   matrix:
     - LUA=lua5.1
     - LUA=lua5.2
     - LUA=lua5.3
-    - LUA=luajit
+    - LUA=luajit     # latest stable version (2.0.4)
+    - LUA=luajit2.0  # current head of 2.0 branch
+    - LUA=luajit2.1  # current head of 2.1 branch
 
 branches:
   only:
     - master
 
 before_install:
-  - bash .travis/setup_lua.sh
-  - if [ $LUA = "luajit" ]; then
-      sudo luarocks install ljsyscall;
+  - source .travis/setenv_lua.sh
+  - if [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
+      luarocks install ljsyscall;
     fi
-  - sudo luarocks install luafilesystem --from=https://rocks.moonscript.org/dev
+  - luarocks install luafilesystem
 
 install:
-  - sudo luarocks install https://raw.github.com/moteus/lunit/moteus-skip/rockspecs/lunitx-scm.mot.skip-0.rockspec --deps-mode=none
-  - sudo luarocks install luacov
-  - sudo luarocks make rockspecs/lua-path-scm-0.rockspec
+  - luarocks make rockspecs/lua-path-scm-0.rockspec
+
+before_script:
+  - luarocks install luacov
+  - luarocks install lunitx
 
 script:
   - cd test
@@ -31,7 +37,7 @@ script:
   - lua -lluacov test_lfs.lua
 
 after_success:
-  - sudo luarocks install luacov-coveralls
+  - luarocks install luacov-coveralls
   - luacov-coveralls
 
 notifications:
