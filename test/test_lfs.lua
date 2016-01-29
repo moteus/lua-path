@@ -163,7 +163,7 @@ end
 -- Stressing directory iterator (exists)
 count = 0
 for i = 1, 4000 do
-        for file in lfs.dir (tmpdir) do
+        for file in lfs.dir (current) do
                 count = count + 1
         end
 end
@@ -191,7 +191,7 @@ end
 -- Stressing directory iterator, explicit version (exists)
 count = 0
 for i = 1, 4000 do
-  local iter, dir = lfs.dir(tmpdir)
+  local iter, dir = lfs.dir(current)
   local file = dir:next()
   while file do
     count = count + 1
@@ -214,7 +214,7 @@ if IS_WINDOWS then
 end
 
 -- directory explicit close
-local iter, dir = lfs.dir(tmpdir)
+local iter, dir = lfs.dir(current)
 dir:close()
 assert(not pcall(dir.next, dir))
 print"Ok!"
