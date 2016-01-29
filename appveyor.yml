@@ -9,12 +9,12 @@ shallow_clone: true
 environment:
   LUAROCKS_VER: 2.3.0
   matrix:
-    - LUA_VER: 5.1.5
-    - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags disabled.
-      NOCOMPAT: true
-    - LUA_VER: 5.3.2  # Lua 5.3.2 with compatibility flags disabled.
-      NOCOMPAT: true
-    - LJ_VER: 2.0.4
+    # - LUA_VER: 5.1.5
+    # - LUA_VER: 5.2.4  # Lua 5.2.4 with compatibility flags disabled.
+    #   NOCOMPAT: true
+    # - LUA_VER: 5.3.2  # Lua 5.3.2 with compatibility flags disabled.
+    #   NOCOMPAT: true
+    # - LJ_VER: 2.0.4
     - LJ_VER: 2.1
 
 matrix:
@@ -33,7 +33,7 @@ configuration:
 
 platform:
   - x86
-  - x64
+  # - x64
 
 cache:
   - c:\lua -> appveyor.yml

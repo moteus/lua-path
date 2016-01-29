@@ -16,38 +16,44 @@ if not IS_WINDOWS then
   return
 end
 
-local function self_test(wcs)
+local function self_test(t, wcs)
   local assert = lunit.assert
   local assert_nil = lunit.assert_nil
   local assert_equal = lunit.assert_equal
 
-  assert_nil(wcs.wcstoansi(nil))
-  assert_nil(wcs.ansitowcs(nil))
+  t['test: should convert nil to nil'] = function()
+    assert_nil(wcs.wcstoansi(nil))
+    assert_nil(wcs.ansitowcs(nil))
+  end
 
-  assert_equal("", wcs.wcstoansi(""))
-  assert_equal("", wcs.ansitowcs(""))
+  t['test: should convert empty string'] = function()
+    assert_equal("", wcs.wcstoansi(""))
+    assert_equal("", wcs.ansitowcs(""))
+  end
 
-  local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
-  local res = "DemonicAngel"
-  assert(wcs.wcstooem(str) == res)
+  t['test: should convert to OEM string'] = function()
+    local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
+    local res = "DemonicAngel"
+    assert_equal(res, wcs.wcstooem(str))
+  end
 
+  t['test: should convert to ANSI string'] = function()
+    local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
+    local res = "DemonicAngel"
+    assert_equal(res, wcs.wcstoansi(str))
+  end
 
+  t['test: should convert from ANSI string'] = function()
+    local str = "\68\235\109\243\241\236\231\196\241\103\233\108"
+    local res = "\68\0\59\4\109\0\67\4\65\4\60\4\55\4\20\4\65\4\103\0\57\4\108\0"
+    assert_equal(res, wcs.ansitowcs(str))
+  end
 
-  local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
-  local res = "DemonicAngel"
-  assert(wcs.wcstoansi(str) == res)
-
-  local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
-  local res = "DemonicAngel"
-  assert(wcs.wcstooem(str) == res)
-
-  local str = "\68\235\109\243\241\236\231\196\241\103\233\108"
-  local res = "\68\0\59\4\109\0\67\4\65\4\60\4\55\4\20\4\65\4\103\0\57\4\108\0"
-  assert(wcs.ansitowcs(str) == res)
-
-  local str = "\68\137\109\162\164\141\135\142\164\103\130\108"
-  local res = "\68\0\25\4\109\0\50\4\52\4\29\4\23\4\30\4\52\4\103\0\18\4\108\0"
-  assert(wcs.oemtowcs(str) == res)
+  t['test: should convert from OEM string'] = function()
+    local str = "\68\137\109\162\164\141\135\142\164\103\130\108"
+    local res = "\68\0\25\4\109\0\50\4\52\4\29\4\23\4\30\4\52\4\103\0\18\4\108\0"
+    assert_equal(res, wcs.oemtowcs(str))
+  end
 
   -- iconv
   local utf8 = "\65\111\32\108\111\110\103\101\44\32\97\111\32\108\117\97\114"
@@ -87,8 +93,13 @@ local function self_test(wcs)
   .. "\97\0\10\0\10\0\32\0\32\0\32\0\32\0\45\0\45\0\32\0\70\0\101\0\114\0\110"
   .. "\0\97\0\110\0\100\0\111\0\32\0\80\0\101\0\115\0\115\0\111\0\97\0\10\0"
 
-  assert(utf16:sub(3) == wcs.utf8towcs(utf8))         -- without bom
-  assert(utf8         == wcs.wcstoutf8(utf16:sub(3))) -- without bom
+  t['test: should convert from UTF8 string'] = function()
+    assert_equal(utf16:sub(3), wcs.utf8towcs(utf8))         -- without bom
+  end
+
+  t['test: should convert to UTF8 string'] = function()
+    assert_equal(utf8,         wcs.wcstoutf8(utf16:sub(3))) -- without bom
+  end
 end
 
 local function prequire(...)
@@ -100,22 +111,18 @@ end
 local _ENV = TEST_CASE('WCS ffi')
 if not prequire"ffi" then test = SKIP_CASE"ffi module not found" else 
 
-local wcs
+local wcs = require "path.win32.wcs".load("ffi")
 
-function setup() wcs = require "path.win32.wcs".load("ffi") end
-
-function test() self_test(wcs) end
+self_test(_ENV or _M, wcs)
 
 end
 
 local _ENV = TEST_CASE('WCS alien')
 if not prequire"alien" then test = SKIP_CASE"alien module not found" else 
 
-local wcs
+local wcs = require "path.win32.wcs".load("alien")
 
-function setup() wcs = require "path.win32.wcs".load("alien") end
-
-function test() self_test(wcs) end
+self_test(_ENV or _M, wcs)
 
 end
 

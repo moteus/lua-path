@@ -325,7 +325,9 @@ function test_attr()
   end, {skipdirs=true, recurse=true})
 
   path.each("./1/*", "ft", function(f,mt)
-    assert_equal(ts, mt)
+    if math.abs(ts - mt) > 1 then
+      assert_equal(ts, mt)
+    end
   end, {skipdirs=true, recurse=true})
 end
 
