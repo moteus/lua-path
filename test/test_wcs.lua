@@ -41,25 +41,25 @@ local function self_test(t, wcs)
   t['test: should convert to OEM string'] = function()
     local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
     local res = "DemonicAngel"
-    assert_equal(BIN(res), BIN(wcs.wcstooem(str)))
+    assert_equal(BIN(res), BIN(wcs.wcstombs(str, 866)))
   end
 
   t['test: should convert to ANSI string'] = function()
     local str = "D\0ë\0m\0ó\0ñ\0ì\0ç\0Ä\0ñ\0g\0é\0l\0"
     local res = "DemonicAngel"
-    assert_equal(BIN(res), BIN(wcs.wcstoansi(str)))
+    assert_equal(BIN(res), BIN(wcs.wcstombs(str, 1251)))
   end
 
   t['test: should convert from ANSI string'] = function()
     local str = "\68\235\109\243\241\236\231\196\241\103\233\108"
     local res = "\68\0\59\4\109\0\67\4\65\4\60\4\55\4\20\4\65\4\103\0\57\4\108\0"
-    assert_equal(BIN(res), BIN(wcs.ansitowcs(str)))
+    assert_equal(BIN(res), BIN(wcs.mbstowcs(str, 1251)))
   end
 
   t['test: should convert from OEM string'] = function()
     local str = "\68\137\109\162\164\141\135\142\164\103\130\108"
     local res = "\68\0\25\4\109\0\50\4\52\4\29\4\23\4\30\4\52\4\103\0\18\4\108\0"
-    assert_equal(BIN(res), BIN(wcs.oemtowcs(str)))
+    assert_equal(BIN(res), BIN(wcs.mbstowcs(str, 866)))
   end
 
   -- iconv
