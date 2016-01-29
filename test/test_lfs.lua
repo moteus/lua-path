@@ -10,7 +10,7 @@ end
 
 local function test(name, lfs)
 
-local tmp = "/tmp"
+local nonexists = "/8f00e678b1984de4a49d7650e1534327"
 local sep = string.match (package.config, "[^\n]+")
 local upper = ".."
 
@@ -51,6 +51,7 @@ io.flush()
 -- Changing creating and removing directories
 local tmpdir = current..sep.."lfs_tmp_dir"
 local tmpfile = tmpdir..sep.."tmp_file"
+
 -- Test for existence of a previous lfs_tmp_dir
 -- that may have resulted from an interrupted test execution and remove it
 if lfs.chdir (tmpdir) then
@@ -146,10 +147,10 @@ assert (type(lfs.attributes (upper)) == "table", "couldn't get attributes of upp
 io.write(".")
 io.flush()
 
--- Stressing directory iterator
+-- Stressing directory iterator (nonexists)
 count = 0
 for i = 1, 4000 do
-        for file in lfs.dir (tmp) do
+        for file in lfs.dir (nonexists) do
                 count = count + 1
         end
 end
@@ -157,10 +158,36 @@ end
 io.write(".")
 io.flush()
 
--- Stressing directory iterator, explicit version
+-- Stressing directory iterator (exists)
 count = 0
 for i = 1, 4000 do
-  local iter, dir = lfs.dir(tmp)
+        for file in lfs.dir (tmpdir) do
+                count = count + 1
+        end
+end
+
+io.write(".")
+io.flush()
+
+-- Stressing directory iterator, explicit version (nonexists)
+count = 0
+for i = 1, 4000 do
+  local iter, dir = lfs.dir(nonexists)
+  local file = dir:next()
+  while file do
+    count = count + 1
+    file = dir:next()
+  end
+  assert(not pcall(dir.next, dir))
+end
+
+io.write(".")
+io.flush()
+
+-- Stressing directory iterator, explicit version (exists)
+count = 0
+for i = 1, 4000 do
+  local iter, dir = lfs.dir(tmpdir)
   local file = dir:next()
   while file do
     count = count + 1
@@ -173,7 +200,15 @@ io.write(".")
 io.flush()
 
 -- directory explicit close
-local iter, dir = lfs.dir(tmp)
+local iter, dir = lfs.dir(nonexists)
+dir:close()
+assert(not pcall(dir.next, dir))
+
+io.write(".")
+io.flush()
+
+-- directory explicit close
+local iter, dir = lfs.dir(tmpdir)
 dir:close()
 assert(not pcall(dir.next, dir))
 print"Ok!"

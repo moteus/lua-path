@@ -575,12 +575,36 @@ end
 function _M.dir(u, P)
   local h, fd = u.FindFirstFile(P .. u.DIR_SEP .. u.ANY_MASK)
   if not h then
-    local nop = function()end
-    if (fd == CONST.ERROR_FILE_NOT_FOUND) or (fd == CONST.ERROR_PATH_NOT_FOUND) then
-      -- this is not error but just empty result
-      return nop, {close = nop}
+    local closed = false
+
+    local function close()
+      if not closed then
+        closed = true
+        return
+      end
+      error("calling 'next' on bad self (closed directory)", 2)
     end
-    return function() return nil, fd end, {close = nop}
+    local next
+    if (fd == CONST.ERROR_FILE_NOT_FOUND) or (fd == CONST.ERROR_PATH_NOT_FOUND) then
+      next = function()
+        if closed then
+          error("calling 'next' on bad self (closed directory)", 2)
+        end
+        close()
+      end
+    else
+      next = function()
+        if closed then
+          error("calling 'next' on bad self (closed directory)", 2)
+        end
+        close()
+        return nil, fd
+      end
+    end
+
+    local obj = { close = close; next = next}
+
+    return obj.next, obj
   end
 
   local closed = false
