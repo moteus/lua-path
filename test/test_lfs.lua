@@ -148,15 +148,17 @@ io.write(".")
 io.flush()
 
 -- Stressing directory iterator (nonexists)
-count = 0
-for i = 1, 4000 do
-        for file in lfs.dir (nonexists) do
-                count = count + 1
-        end
-end
+if IS_WINDOWS then
+  count = 0
+  for i = 1, 4000 do
+          for file in lfs.dir (nonexists) do
+                  count = count + 1
+          end
+  end
 
-io.write(".")
-io.flush()
+  io.write(".")
+  io.flush()
+end
 
 -- Stressing directory iterator (exists)
 count = 0
@@ -170,19 +172,21 @@ io.write(".")
 io.flush()
 
 -- Stressing directory iterator, explicit version (nonexists)
-count = 0
-for i = 1, 4000 do
-  local iter, dir = lfs.dir(nonexists)
-  local file = dir:next()
-  while file do
-    count = count + 1
-    file = dir:next()
+if IS_WINDOWS then
+  count = 0
+  for i = 1, 4000 do
+    local iter, dir = lfs.dir(nonexists)
+    local file = dir:next()
+    while file do
+      count = count + 1
+      file = dir:next()
+    end
+    assert(not pcall(dir.next, dir))
   end
-  assert(not pcall(dir.next, dir))
-end
 
-io.write(".")
-io.flush()
+  io.write(".")
+  io.flush()
+end
 
 -- Stressing directory iterator, explicit version (exists)
 count = 0
@@ -199,13 +203,15 @@ end
 io.write(".")
 io.flush()
 
--- directory explicit close
-local iter, dir = lfs.dir(nonexists)
-dir:close()
-assert(not pcall(dir.next, dir))
+if IS_WINDOWS then
+  -- directory explicit close
+  local iter, dir = lfs.dir(nonexists)
+  dir:close()
+  assert(not pcall(dir.next, dir))
 
-io.write(".")
-io.flush()
+  io.write(".")
+  io.flush()
+end
 
 -- directory explicit close
 local iter, dir = lfs.dir(tmpdir)
