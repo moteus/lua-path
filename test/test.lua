@@ -691,7 +691,7 @@ function test_copy_batch_dir()
   assert(path.copy(
     path.join(cwd, '1', '3*'),
     path.join(cwd, '2'),
-    {recurse = true,skipdirs=true}
+    {recurse = true,skipdirs=false}
   ))
 
   assert_equal(path.join(cwd, '2', '2', '3'), path.isdir(path.join(cwd, '2', '2', '3')))

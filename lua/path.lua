@@ -405,6 +405,7 @@ local function copy_impl_batch(self, fs, src_dir, mask, dst_dir, opt)
   local chlen     = #fs.DIR_SEP
   local count     = 0
 
+  local existed_dirs = {}
   local ok, err = fs.each_impl{file = src_dir .. fs.DIR_SEP .. mask,
     delay = opt.delay; recurse = opt.recurse; param = "pnm";
     skipdirs = opt.skipdirs; skipfiles = opt.skipfiles;
@@ -419,12 +420,25 @@ local function copy_impl_batch(self, fs, src_dir, mask, dst_dir, opt)
         if not ok then return end
       end
 
-      local ok, err
+      local ok, err = true
       if mode == "directory" then
-        ok, err = self:mkdir(dst)
+        if not existed_dirs[dst] then
+          if not fs.isdir(dst) then
+            ok, err = self:mkdir(dst)
+          end
+          existed_dirs[dst] = true
+        end
       else
-        self:mkdir((self:splitpath(dst)))
-        ok, err = fs.copy(src, dst, not overwrite)
+        local dir = self:splitpath(dst)
+        if not existed_dirs[dir] then
+          if not fs.isdir(dst) then
+            ok, err = self:mkdir(dir)
+          end
+          existed_dirs[dir] = true
+        end
+        if ok then
+          ok, err = fs.copy(src, dst, not overwrite)
+        end
       end
 
       if not ok and onerror then
