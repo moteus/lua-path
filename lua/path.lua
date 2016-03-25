@@ -533,21 +533,49 @@ local function path_new(o)
   return o
 end
 
+local function lock_table(t)
+  return setmetatable(t,{
+    __newindex = function()
+      error("Can not change path library", 2)
+    end;
+    __metatable = "lua-path object";
+  })
+end
+
 local M = path_new(require "path.module")
 
+local path_cache = setmetatable({}, {__mode='v'})
+
 function M.new(DIR_SEP)
-  local o = path_new()
+  local is_win, sep
 
   if type(DIR_SEP) == 'string' then
-    o.DIR_SEP = DIR_SEP
-    o.IS_WINDOWS = (DIR_SEP == '\\')
-  else
+    sep = DIR_SEP
+    is_win = (DIR_SEP == '\\')
+  elseif DIR_SEP ~= nil then
     assert(type(DIR_SEP) == 'boolean')
-    o.IS_WINDOWS = DIR_SEP
-    o.DIR_SEP = o.IS_WINDOWS and '\\' or '/'
+    is_win = DIR_SEP
+    sep = is_win and '\\' or '/'
+  else
+    sep = M.DIR_SEP
+    is_win = M.IS_WINDOWS
+  end
+
+  if M.DIR_SEP == sep then
+    assert(M.IS_WINDOWS == is_win)
+    return M
+  end
+
+  local o = path_cache[sep]
+
+  if not o then
+    o = path_new()
+    o.DIR_SEP = sep
+    o.IS_WINDOWS = is_win
+    path_cache[sep] = lock_table(o)
   end
 
   return o
 end
 
-return M
+return lock_table(M)
