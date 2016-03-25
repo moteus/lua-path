@@ -1,3 +1,15 @@
+------------------------------------------------------------------
+--
+--  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--
+--  Copyright (C) 2013-2016 Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--
+--  Licensed according to the included 'LICENCE' document
+--
+--  This file is part of lua-path library.
+--
+------------------------------------------------------------------
+
 local alien = require "alien"
 local kernel32 = assert(alien.load("kernel32.dll"))
 local MultiByteToWideChar_ = assert(kernel32.MultiByteToWideChar)

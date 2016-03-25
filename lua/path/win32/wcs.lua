@@ -1,3 +1,15 @@
+------------------------------------------------------------------
+--
+--  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--
+--  Copyright (C) 2013-2016 Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--
+--  Licensed according to the included 'LICENCE' document
+--
+--  This file is part of lua-path library.
+--
+------------------------------------------------------------------
+
 local CP_ACP            = 0           -- default to ANSI code page
 local CP_OEM            = 1           -- default to OEM  code page
 local CP_MAC            = 2           -- default to MAC  code page
