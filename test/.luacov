@@ -34,9 +34,8 @@ return {
     -- debug = true,
 
     pathcorrect = {
-      {"\\",                          "/"         };
-      {"/usr/local/share/lua/5.%d",   "lua"       };
-      {"^%./test",                    "test/test" };
+      {"\\",                             "/"   };
+      {"^.-[/\\]share[/\\]lua[/\\]5.%d", "lua" };
     },
 
   },
