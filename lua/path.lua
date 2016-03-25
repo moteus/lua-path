@@ -506,22 +506,26 @@ PATH.getmtime = PATH.mtime
 PATH.getsize  = PATH.size
 end
 
-local function make_module()
-  local M = require "path.module"
+local function path_new(o)
+  o = o or {}
   for k, f in pairs(PATH) do
     if type(f) == 'function' then
-      M[k] = function(...) return f(PATH, ...) end
+      o[k] = function(...)
+        if o == ... then return f(...) end
+        return f(o, ...)
+      end
     else 
-      M[k] = f
+      o[k] = f
     end
   end
-  return M
+  return o
 end
 
-local M = make_module()
+local M = path_new(require "path.module")
 
 function M.new(DIR_SEP)
-  local o = setmetatable({}, {__index = PATH})
+  local o = path_new()
+
   if type(DIR_SEP) == 'string' then
     o.DIR_SEP = DIR_SEP
     o.IS_WINDOWS = (DIR_SEP == '\\')

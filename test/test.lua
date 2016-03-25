@@ -196,9 +196,16 @@ function test_join()
   assert_equal("hello\\",                     path_win:join("hello", ""))
 end
 
+function test_dot_notation()
+  assert_equal("hello\\world",                path_win.join("hello", "", "world"))
+  assert_equal("hello/world",                 path_unx.join("hello", "", "world"))
+  assert_equal('/',                           path_unx.ensure_dir_end('/'))
+  assert_equal('host',                        path_win.root('\\\\host\\a\\b\\c'))
 end
 
-local _ENV = TEST_CASE('PATH system error') if true then
+end
+
+local _ENV = TEST_CASE('PATH system error') if false then
 
 function test()
   local p = path.IS_WINDOWS and path_unx or path_win
@@ -211,7 +218,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH fullpath')     if true then
+local _ENV = TEST_CASE('PATH fullpath')     if false then
 
 function test_user_home()
   local p = assert_string(path.user_home())
@@ -230,7 +237,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH make dir')     if true then
+local _ENV = TEST_CASE('PATH make dir')     if false then
 
 local cwd
 
@@ -273,7 +280,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH findfile')     if true then
+local _ENV = TEST_CASE('PATH findfile')     if false then
 
 local cwd, files, dirs
 
@@ -412,7 +419,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH rename')       if true then
+local _ENV = TEST_CASE('PATH rename')       if false then
 
 local cwd
 
@@ -492,7 +499,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH chdir')        if true then
+local _ENV = TEST_CASE('PATH chdir')        if false then
 
 local cwd
 
@@ -518,7 +525,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH copy')         if true then
+local _ENV = TEST_CASE('PATH copy')         if false then
 
 local cwd, files
 
@@ -696,7 +703,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH clean dir')    if true then
+local _ENV = TEST_CASE('PATH clean dir')    if false then
 
 local cwd
 
@@ -814,7 +821,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH each mask')    if true then
+local _ENV = TEST_CASE('PATH each mask')    if false then
 
 local cwd, J
 
