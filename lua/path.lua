@@ -396,7 +396,7 @@ function PATH:each(...)
   return each(...)
 end
 
-local function copy_impl_batch(fs, src_dir, mask, dst_dir, opt)
+local function copy_impl_batch(self, fs, src_dir, mask, dst_dir, opt)
   if not opt then opt = {} end
 
   local overwrite = opt.overwrite
@@ -420,8 +420,12 @@ local function copy_impl_batch(fs, src_dir, mask, dst_dir, opt)
       end
 
       local ok, err
-      if mode == "directory" then ok, err = fs.mkdir(dst)
-      else ok, err = fs.copy(src, dst, not overwrite) end
+      if mode == "directory" then
+        ok, err = self:mkdir(dst)
+      else
+        self:mkdir((self:splitpath(dst)))
+        ok, err = fs.copy(src, dst, not overwrite)
+      end
 
       if not ok and onerror then
         if not onerror(err, src, dst, opt) then -- break
@@ -488,8 +492,7 @@ function PATH:copy(from, to, opt)
 
   local src_dir, src_name = self:splitpath(from)
   if recurse or src_name:find("[*?]") then -- batch mode
-    self:mkdir(to)
-    return copy_impl_batch(fs, src_dir, src_name, to, opt)
+    return copy_impl_batch(self, fs, src_dir, src_name, to, opt)
   end
   if self.mkdir then self:mkdir(self:dirname(to)) end
   return fs.copy(from, to, not not overwrite)

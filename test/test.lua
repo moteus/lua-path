@@ -205,7 +205,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH system error') if false then
+local _ENV = TEST_CASE('PATH system error') if true then
 
 function test()
   local p = path.IS_WINDOWS and path_unx or path_win
@@ -218,7 +218,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH fullpath')     if false then
+local _ENV = TEST_CASE('PATH fullpath')     if true then
 
 function test_user_home()
   local p = assert_string(path.user_home())
@@ -237,7 +237,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH make dir')     if false then
+local _ENV = TEST_CASE('PATH make dir')     if true then
 
 local cwd
 
@@ -280,7 +280,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH findfile')     if false then
+local _ENV = TEST_CASE('PATH findfile')     if true then
 
 local cwd, files, dirs
 
@@ -419,7 +419,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH rename')       if false then
+local _ENV = TEST_CASE('PATH rename')       if true then
 
 local cwd
 
@@ -499,7 +499,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH chdir')        if false then
+local _ENV = TEST_CASE('PATH chdir')        if true then
 
 local cwd
 
@@ -525,7 +525,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH copy')         if false then
+local _ENV = TEST_CASE('PATH copy')         if true then
 
 local cwd, files
 
@@ -547,9 +547,24 @@ function teardown()
   path.remove(path.join(cwd, '1', '2', '3'))
   path.remove(path.join(cwd, '1', '2'))
   path.remove(path.join(cwd, '1'))
+
+  path.remove(path.join(cwd, '2', 'a1.txt'))
+  path.remove(path.join(cwd, '2', 'a2.txt'))
+  path.remove(path.join(cwd, '2', 'b1.txt'))
+  path.remove(path.join(cwd, '2', 'b2.txt'))
+  path.remove(path.join(cwd, '2', '2', 'a1.txt'))
+  path.remove(path.join(cwd, '2', '2', 'a2.txt'))
+  path.remove(path.join(cwd, '2', '2', 'b1.txt'))
+  path.remove(path.join(cwd, '2', '2', 'b2.txt'))
+  path.remove(path.join(cwd, '2', '2', '3', 'a1.txt'))
+  path.remove(path.join(cwd, '2', '2', '3', 'a2.txt'))
+  path.remove(path.join(cwd, '2', '2', '3', 'b1.txt'))
+  path.remove(path.join(cwd, '2', '2', '3', 'b2.txt'))
+
+  path.remove(path.join(cwd, '2', '2', '3'))
+  path.remove(path.join(cwd, '2', '2' ))
   path.remove(path.join(cwd, '2', 'to'))
   path.remove(path.join(cwd, '2'))
-
 end
 
 function setup()
@@ -641,6 +656,47 @@ function test_copy_batch()
   assert_nil(fname)
 end
 
+function test_copy_batch_recurse()
+  path.mkdir(path.join(cwd, '1'))
+  path.mkdir(path.join(cwd, '1', '2'))
+  path.mkdir(path.join(cwd, '1', '2', '3'))
+
+  mkfile(path.join(cwd, '1', 'a1.txt'), '12345')
+  mkfile(path.join(cwd, '1', 'a2.txt'), '54321')
+  mkfile(path.join(cwd, '1', 'b1.txt'), '12345')
+  mkfile(path.join(cwd, '1', 'b2.txt'), '54321')
+
+  mkfile(path.join(cwd, '1', '2', '3', 'a1.txt'), '12345')
+  mkfile(path.join(cwd, '1', '2', '3', 'a2.txt'), '54321')
+  mkfile(path.join(cwd, '1', '2', '3', 'b1.txt'), '12345')
+  mkfile(path.join(cwd, '1', '2', '3', 'b2.txt'), '54321')
+
+  assert(path.copy(
+    path.join(cwd, '1', 'a*.txt'),
+    path.join(cwd, '2'),
+    {recurse = true}
+  ))
+
+  assert_equal("12345", read_file(path.join(cwd, '2', 'a1.txt')))
+  assert_equal("54321", read_file(path.join(cwd, '2', 'a2.txt')))
+  assert_equal("12345", read_file(path.join(cwd, '2', '2', '3', 'a1.txt')))
+  assert_equal("54321", read_file(path.join(cwd, '2', '2', '3', 'a2.txt')))
+end
+
+function test_copy_batch_dir()
+  path.mkdir(path.join(cwd, '1'))
+  path.mkdir(path.join(cwd, '1', '2'))
+  path.mkdir(path.join(cwd, '1', '2', '3'))
+
+  assert(path.copy(
+    path.join(cwd, '1', '3*'),
+    path.join(cwd, '2'),
+    {recurse = true,skipdirs=true}
+  ))
+
+  assert_equal(path.join(cwd, '2', '2', '3'), path.isdir(path.join(cwd, '2', '2', '3')))
+end
+
 function test_copy_accept()
   local options options = {
     skipdirs = true;
@@ -703,7 +759,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH clean dir')    if false then
+local _ENV = TEST_CASE('PATH clean dir')    if true then
 
 local cwd
 
@@ -821,7 +877,7 @@ end
 
 end
 
-local _ENV = TEST_CASE('PATH each mask')    if false then
+local _ENV = TEST_CASE('PATH each mask')    if true then
 
 local cwd, J
 
