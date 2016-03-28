@@ -52,7 +52,7 @@ install:
 before_build:
   - if "%LUA_VER%" EQU "5.1.5" (luarocks show bit32 || luarocks install bit32)
   - if "%LUA_FFI%" NEQ "" (luarocks show %LUA_FFI% || luarocks install %LUA_FFI%)
-  - luarocks show luafilesystem || luarocks install luafilesystem
+  - if "%LJ_VER%" EQU "" (luarocks show luafilesystem || luarocks install luafilesystem)
 
 build_script:
   - luarocks make rockspecs/lua-path-scm-0.rockspec 
