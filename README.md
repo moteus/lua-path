@@ -19,10 +19,10 @@ print(PATH.currentdir()) -- C:\lua\5.1
 
 -- but we can use specific system path notation
 local ftp_path = PATH.new('/')
-print(ftp_path:join("/root", "some", "dir")) -- /root/some/dir
+print(ftp_path.join("/root", "some", "dir")) -- /root/some/dir
 
 -- All functions specific to system will fail
-assert(not pcall( ftp_path.currentdir, ftp_path ) )
+assert(not pcall( ftp_path.currentdir ) )
 ```
 
 ```lua
