@@ -1,5 +1,5 @@
 package = "lua-path"
-version = "0.2.4-1"
+version = "0.3.0-1"
 source = {
   url = "https://github.com/moteus/lua-path/archive/v0.3.0.zip",
   dir = "lua-path-0.3.0",
