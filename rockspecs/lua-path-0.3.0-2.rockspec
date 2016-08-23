@@ -1,8 +1,8 @@
 package = "lua-path"
-version = "scm-0"
+version = "0.3.0-2"
 source = {
-  url = "https://github.com/moteus/lua-path/archive/master.zip",
-  dir = "lua-path-master",
+  url = "https://github.com/moteus/lua-path/archive/v0.3.0.zip",
+  dir = "lua-path-0.3.0",
 }
 
 description = {
