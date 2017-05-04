@@ -2,34 +2,58 @@ language: c
 
 sudo: false
 
-env:
-  global:
-    - LUAROCKS=2.3.0
-  matrix:
-    - LUA=lua5.1
-    - LUA=lua5.2
-    - LUA=lua5.3
-    - LUA=luajit     # latest stable version (2.0.4)
-    - LUA=luajit2.0  # current head of 2.0 branch
-    - LUA=luajit2.1  # current head of 2.1 branch
+matrix:
+  include:
+    - compiler: ": Lua51-osx"
+      env: LUA="lua 5.1"
+      os: osx
+    - compiler: ": Lua51"
+      env: LUA="lua 5.1"
+      os: linux
+    - compiler: ": Lua52"
+      env: LUA="lua 5.2"
+      os: linux
+    - compiler: ": Lua53"
+      env: LUA="lua 5.3"
+      os: linux
+    - compiler: ": LuaJIT20"
+      env: LUA="luajit 2.0"
+      os: linux
+    - compiler: ": LuaJIT21"
+      env: LUA="luajit 2.1"
+      os: linux
+    - compiler: ": LuaJIT21-osx"
+      env: LUA="luajit 2.1"
+      os: osx
+
+cache:
+  directories:
+    - here
+    - $HOME/.cache/pip
 
 branches:
   only:
     - master
 
 before_install:
-  - source .travis/setenv_lua.sh
+  - export CC=gcc
+  - gcc --version
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH=$PATH:~/Library/Python/2.7/bin/; fi
+  - pip install --user cpp-coveralls
+  - pip install --user hererocks
+  - hererocks here -r^ --$LUA
+  - source here/bin/activate
   - if [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
-      luarocks install ljsyscall;
+      luarocks show ljsyscall > /dev/null 2>&1 || luarocks install ljsyscall;
     fi
-  - luarocks install luafilesystem
+  - luarocks show luafilesystem > /dev/null 2>&1 || luarocks install luafilesystem
 
 install:
   - luarocks make rockspecs/lua-path-scm-0.rockspec
 
 before_script:
-  - luarocks install luacov
-  - luarocks install lunitx
+  - luarocks show luacov > /dev/null 2>&1 || luarocks install luacov
+  - luarocks show lunitx > /dev/null 2>&1 || luarocks install lunitx
 
 script:
   - cd test
@@ -37,7 +61,8 @@ script:
   - lua -lluacov test_lfs.lua
 
 after_success:
-  - luarocks install luacov-coveralls
+  - luarocks show lua-curl         > /dev/null 2>&1 || luarocks install lua-curl
+  - luarocks show luacov-coveralls > /dev/null 2>&1 || luarocks install luacov-coveralls
   - luacov-coveralls
 
 notifications:
