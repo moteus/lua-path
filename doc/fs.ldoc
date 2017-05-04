@@ -138,5 +138,6 @@ function fs.each(option) end
 -- @tfield[opt=false] boolean skipdirs
 -- @tfield[opt=false] boolean skipfiles
 -- @tfield[opt=true] boolean skipdots
+-- @tfield[opt=nil] function filter
 -- 
 

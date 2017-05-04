@@ -44,7 +44,7 @@ before_install:
   - hererocks here -r^ --$LUA
   - source here/bin/activate
   - if [ "$(expr substr $LUA 1 6)" == "luajit" ]; then
-      luarocks show ljsyscall > /dev/null 2>&1 || luarocks install ljsyscall;
+      luarocks install ljsyscall;
     fi
   - luarocks show luafilesystem > /dev/null 2>&1 || luarocks install luafilesystem
 

@@ -42,8 +42,7 @@ install:
   - call c:\hererocks\bin\activate
 
 before_build:
-  - if "%LUA_VER%" EQU "5.1.5" (luarocks show bit32 >nul 2>&1 || luarocks install bit32)
-  - if "%LUA_FFI%" NEQ "" (luarocks show %LUA_FFI% >nul 2>&1 || luarocks install %LUA_FFI%)
+  - if "%LUA%" EQU "lua 5.1" (luarocks show bit32 >nul 2>&1 || luarocks install bit32)
   - luarocks show luafilesystem >nul 2>&1 || luarocks install luafilesystem
 
 build_script:

@@ -1,12 +1,15 @@
+# lua-path
+
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENCE.txt)
 [![Build Status](https://travis-ci.org/moteus/lua-path.png?branch=master)](https://travis-ci.org/moteus/lua-path)
 [![Build Status](https://ci.appveyor.com/api/projects/status/okrhcb519rldjhn4?svg=true)](https://ci.appveyor.com/project/moteus/lua-path)
 [![Coverage Status](https://coveralls.io/repos/moteus/lua-path/badge.png)](https://coveralls.io/r/moteus/lua-path)
 
-###Documentation
-[Dcumentation](http://moteus.github.io/path/index.html)
+## Documentation
 
-Usage:
+[View entire documentation here](http://moteus.github.io/path/index.html)
+
+## Usage
 ```lua
 local PATH = require "path"
 
@@ -42,7 +45,4 @@ end,{
   reverse = true; -- subdirs at first 
 })
 ```
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/moteus/lua-path/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
