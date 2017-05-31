@@ -11,7 +11,7 @@ local function walk_empty_dirs(p, fn)
   local is_recurse = p:sub(1,1) == '!'
   if is_recurse then p = p:sub(2) end
 
-  path.each(path.join(p, '*.*'), fn, {
+  path.each(path.join(p, '*'), fn, {
     skipfiles=true, skipdirs=false, recurse=is_recurse, filter=is_empty_dir,
   })
 end

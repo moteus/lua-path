@@ -60,7 +60,7 @@ local function walk_old_files(mask, days, cmd)
   if not is_recurse then return end
 
   local dir_mask, file_mask = path.splitpath(mask)
-  path.each{file = path.join(dir_mask, '*.*'),
+  path.each{file = path.join(dir_mask, '*'),
     recurse=true, skipdirs=false, skipfiles=true,
     callback= function(fname)
       if path.isdir(fname) then
