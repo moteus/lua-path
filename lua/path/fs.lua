@@ -2,7 +2,7 @@
 --
 --  Author: Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
---  Copyright (C) 2013-2016 Alexey Melnichuk <alexeymelnichuck@gmail.com>
+--  Copyright (C) 2013-2018 Alexey Melnichuk <alexeymelnichuck@gmail.com>
 --
 --  Licensed according to the included 'LICENCE' document
 --
@@ -22,10 +22,12 @@ end
 local fs
 
 if not fs and IS_WINDOWS then
-  local fsload = require"path.win32.fs".load
-  local ok, mod = pcall(fsload, "ffi", "A")
-  if not ok then ok, mod = pcall(fsload, "alien", "A") end
-  fs = ok and mod
+  local winfs = prequire"path.win32.fs"
+  if winfs then
+    local ok, mod = pcall(winfs.load, "ffi", "A")
+    if not ok then ok, mod = pcall(winfs.load, "alien", "A") end
+    fs = ok and mod
+  end
 end
 
 if not fs and not IS_WINDOWS then
