@@ -126,9 +126,9 @@ function fs.each(option) end
 --      - m mode
 --      - a attributes 
 --      - z size
---      - t atime
+--      - t mtime
 --      - c ctime
---      - l mtime
+--      - l atime
 -- @tfield[opt=false] boolean recurse include subdirs
 -- @tfield[opt=nil] boolean reverse direction of recursion
 --      - true subdirs at first
