@@ -14,7 +14,7 @@ description = {
 }
 
 dependencies = {
-  "lua >= 5.1, < 5.4",
+  "lua >= 5.1, < 5.5",
   -- "luafilesystem >= 1.4",
   -- "alien >= 0.7.0",       -- instead lfs on windows
 }
